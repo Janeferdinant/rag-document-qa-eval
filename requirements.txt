@@ -1,0 +1,6 @@
+# Runtime dependencies (CPU only). Pinned to the versions the committed runs used.
+--extra-index-url https://download.pytorch.org/whl/cpu
+numpy==2.2.6
+torch==2.14.1
+transformers==5.20.0
+sentence-transformers==6.1.0

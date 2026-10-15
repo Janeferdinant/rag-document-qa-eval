@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>RAG Document QA Demo</title>
+<meta name="description" content="Ask questions over a small Wikipedia sample. Retrieval runs in your browser; answers come from your own Gemini key or from precomputed examples.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="wrap">
+  <h1>RAG document QA</h1>
+  <p class="lede">Ask a question over three Wikipedia articles. Retrieval (BM25) runs in your browser and the retrieved passages are shown with numbered citations next to the answer.</p>
+</header>
+
+<main class="wrap">
+  <section class="card notice" aria-labelledby="privacy-h">
+    <h2 id="privacy-h">Before you use a key</h2>
+    <ul>
+      <li>Your key stays in this tab's memory. It is not saved (no cookies, no local storage), not logged, and sent only to Google's Gemini API (<code>generativelanguage.googleapis.com</code>), never to this site.</li>
+      <li>Calls are billed to your own Google account or use its free quota. Google's terms may require a paid service in some regions.
+        <a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noopener noreferrer">Gemini API terms</a>,
+        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">get a key</a>.</li>
+      <li>Passages from the sample corpus and your question are sent to Google with your key. Do not type confidential information.</li>
+    </ul>
+  </section>
+
+  <section class="card" aria-labelledby="mode-h">
+    <h2 id="mode-h">Mode</h2>
+    <p id="mode-badge" class="badge badge-mock" role="status">Mock mode: precomputed examples, no key</p>
+    <form id="key-form" autocomplete="off">
+      <label for="key-input">Gemini API key (optional)</label>
+      <div class="row">
+        <input id="key-input" type="password" autocomplete="new-password" spellcheck="false" placeholder="Paste your own key" inputmode="text">
+        <button type="submit" id="use-key">Use key</button>
+        <button type="button" id="clear-key" class="secondary" hidden>Clear key</button>
+      </div>
+      <label for="model">Model</label>
+      <select id="model"></select>
+    </form>
+  </section>
+
+  <section class="card" aria-labelledby="ask-h">
+    <h2 id="ask-h">Ask</h2>
+    <form id="ask-form">
+      <label for="question">Question</label>
+      <div class="row">
+        <input id="question" type="text" placeholder="e.g. Who founded the Rhine commission?" autocomplete="off">
+        <button type="submit" id="ask">Ask</button>
+      </div>
+    </form>
+    <p class="hint" id="ask-hint">Without a key you get the retrieved passages only. For an answer, pick a precomputed example or add your key.</p>
+    <h3 id="examples-h">Precomputed examples</h3>
+    <p class="hint" id="examples-note"></p>
+    <div id="examples" class="chips" role="list" aria-labelledby="examples-h"></div>
+  </section>
+
+  <section id="result" class="card" aria-live="polite" hidden></section>
+</main>
+
+<footer class="wrap small">
+  <p id="attribution"></p>
+  <p>Source code and evaluation: see the repository README. This page runs entirely in your browser; the only network calls are to load this page's own files and, if you add a key, to Google's Gemini API.</p>
+</footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+{
+ "meta": {
+  "stage": "latency",
+  "date": "2026-10-15",
+  "hardware": {
+   "os": "Windows 10",
+   "cpu": "AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD",
+   "logical_cores": 16,
+   "ram_gb": 34.3,
+   "gpu": "none (CPU only)",
+   "python": "3.10.6",
+   "torch": "2.14.1+cpu",
+   "torch_threads": 8,
+   "transformers": "5.20.0",
+   "numpy": "2.2.6",
+   "code_commit": "e914c24",
+   "sentence_transformers": "6.1.0"
+  },
+  "n_queries": 100,
+  "k": 1,
+  "n_chunks": 1067,
+  "chunking": {
+   "strategy": "sentence",
+   "size": 160,
+   "embedder": "sentence-transformers/all-MiniLM-L6-v2"
+  },
+  "note": "batch size 1, sequential queries, warm models, default torch threads"
+ },
+ "methods": {
+  "bm25": {
+   "retrieval_ms": {
+    "p50": 0.17,
+    "p95": 0.23
+   },
+   "reader_ms": {
+    "p50": 58.87,
+    "p95": 74.27
+   },
+   "end_to_end_ms": {
+    "p50": 59.01,
+    "p95": 74.46
+   },
+   "stages_p50_ms": {
+    "bm25_ms": 0.16
+   }
+  },
+  "dense": {
+   "retrieval_ms": {
+    "p50": 14.48,
+    "p95": 21.15
+   },
+   "reader_ms": {
+    "p50": 59.64,
+    "p95": 74.61
+   },
+   "end_to_end_ms": {
+    "p50": 74.23,
+    "p95": 91.09
+   },
+   "stages_p50_ms": {
+    "encode_ms": 14.19,
+    "dense_ms": 0.23
+   }
+  },
+  "hybrid": {
+   "retrieval_ms": {
+    "p50": 15.03,
+    "p95": 19.62
+   },
+   "reader_ms": {
+    "p50": 59.59,
+    "p95": 75.93
+   },
+   "end_to_end_ms": {
+    "p50": 75.74,
+    "p95": 94.62
+   },
+   "stages_p50_ms": {
+    "encode_ms": 14.34,
+    "dense_ms": 0.23,
+    "bm25_ms": 0.25,
+    "fuse_ms": 0.17
+   }
+  },
+  "hybrid+rerank": {
+   "retrieval_ms": {
+    "p50": 430.63,
+    "p95": 538.91
+   },
+   "reader_ms": {
+    "p50": 60.24,
+    "p95": 80.12
+   },
+   "end_to_end_ms": {
+    "p50": 493.46,
+    "p95": 610.68
+   },
+   "stages_p50_ms": {
+    "encode_ms": 14.98,
+    "dense_ms": 0.23,
+    "bm25_ms": 0.25,
+    "fuse_ms": 0.17,
+    "rerank_ms": 414.94
+   }
+  }
+ }
+}

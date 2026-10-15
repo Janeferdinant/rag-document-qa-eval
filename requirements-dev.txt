@@ -1,0 +1,4 @@
+# Lint, type check, tests. Browser checks need `pip install playwright==1.64.0 && playwright install chromium`.
+pytest==9.1.1
+ruff==0.17.1
+mypy==2.4.0
