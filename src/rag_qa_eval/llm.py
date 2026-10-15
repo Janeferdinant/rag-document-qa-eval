@@ -19,7 +19,7 @@ from typing import Protocol
 from .bm25 import tokenize
 
 GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"  # listed at ai.google.dev/gemini-api/docs/models on 2026-10-15
 
 Transport = Callable[[str, dict[str, str], bytes, float], tuple[int, bytes]]
 
