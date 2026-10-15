@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rag-document-qa-eval"
+version = "0.1.0"
+description = "Retrieval-augmented document question answering with a rigorous evaluation (SQuAD 2.0, CPU only)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "CC-BY-NC-ND-4.0" }
+dependencies = [
+  "numpy>=1.26",
+  "torch>=2.2",
+  "transformers>=4.40",
+  "sentence-transformers>=3.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.5", "mypy>=1.10"]
+e2e = ["playwright>=1.45"]
+
+[project.scripts]
+rag-qa = "rag_qa_eval.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = false
+warn_unused_ignores = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+files = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "models: needs downloaded Hugging Face models (run `make test-models`)",
+  "e2e: browser checks with Playwright (run `make e2e`)",
+]
+addopts = "-m 'not models and not e2e'"

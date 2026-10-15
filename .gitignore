@@ -1,0 +1,12 @@
+__pycache__/
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.tmp/
+.cache/
+/data/
+*.log
+node_modules/
+# Raw datasets, model weights and embedding caches are downloaded at run time and never committed.
