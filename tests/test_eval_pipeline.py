@@ -112,7 +112,6 @@ def settings() -> Settings:
         strategies=("sliding", "sentence"),
         sizes=(20, 40),
         embedders=("fake-hash",),
-        rerank_embedders=("fake-hash",),
         readers=("fake-reader",),
         reader_ks=(1, 3),
         n_boot=200,
@@ -151,8 +150,9 @@ def test_retrieval_stage_covers_the_grid_and_selects_on_calibration(world: dict[
     r = world["retrieval"]
     methods = {e["method"] for e in r["entries"]}
     assert methods == {"bm25", "dense", "hybrid", "hybrid+rerank"}
-    # 2 strategies x 2 sizes x 4 methods x 2 splits
-    assert len(r["entries"]) == 2 * 2 * 4 * 2
+    # grid: 2 strategies x 2 sizes x 3 methods x 2 splits, plus the reranker at the best chunking
+    assert len(r["entries"]) == 2 * 2 * 3 * 2 + 2
+    assert "best_before_reranker" in r["selected"]
     assert r["selected"]["criterion"].endswith("calibration split")
     for e in r["entries"]:
         mean, lo, hi = e["metrics"]["mrr@10"]

@@ -7,6 +7,7 @@ import datetime as dt
 import json
 import os
 import platform
+import subprocess
 import sys
 from collections import defaultdict
 from collections.abc import Callable, Sequence
@@ -39,12 +40,11 @@ TINY_READER = "deepset/tinyroberta-squad2"
 class Settings:
     seed: int = 13
     n_calib_articles: int = 10
-    n_calib_questions: int = 400
-    n_test_questions: int = 1000
+    n_calib_questions: int = 300
+    n_test_questions: int = 800
     strategies: tuple[str, ...] = STRATEGIES
     sizes: tuple[int, ...] = (40, 80, 160)
     embedders: tuple[str, ...] = tuple(EMBEDDERS)
-    rerank_embedders: tuple[str, ...] = (DEFAULT_EMBEDDER,)
     ks: tuple[int, ...] = (1, 3, 5, 10, 20)
     reader_ks: tuple[int, ...] = (1, 3, 5)
     readers: tuple[str, ...] = (DEFAULT_READER,)
@@ -180,6 +180,23 @@ def _ram_gb() -> float | None:
         return None
 
 
+def git_state() -> str:
+    """Short commit hash of the code that produced a run (with '+dirty' if it has local edits)."""
+    try:
+        head = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, check=True
+        ).stdout.strip()
+        dirty = subprocess.run(
+            ["git", "status", "--porcelain", "--", "src", "pyproject.toml"],
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+        return head + ("+dirty" if dirty else "")
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+
+
 def hardware_info() -> dict[str, Any]:
     import numpy
     import torch
@@ -196,6 +213,7 @@ def hardware_info() -> dict[str, Any]:
         "torch_threads": torch.get_num_threads(),
         "transformers": transformers.__version__,
         "numpy": numpy.__version__,
+        "code_commit": git_state(),
     }
     try:
         import sentence_transformers

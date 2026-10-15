@@ -25,7 +25,7 @@ DEFAULT_RERANKER = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 class SentenceEncoder:
     """Dense encoder (sentence-transformers). Embeddings are L2-normalised, so dot = cosine."""
 
-    def __init__(self, model_name: str = DEFAULT_EMBEDDER, batch_size: int = 64) -> None:
+    def __init__(self, model_name: str = DEFAULT_EMBEDDER, batch_size: int = 16) -> None:
         from sentence_transformers import SentenceTransformer
 
         self.model_name = model_name
@@ -49,7 +49,7 @@ class SentenceEncoder:
 
 
 class CrossEncoderReranker:
-    def __init__(self, model_name: str = DEFAULT_RERANKER, batch_size: int = 32) -> None:
+    def __init__(self, model_name: str = DEFAULT_RERANKER, batch_size: int = 16) -> None:
         from sentence_transformers import CrossEncoder
 
         self.model_name = model_name

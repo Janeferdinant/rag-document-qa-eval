@@ -84,60 +84,86 @@ def run_retrieval(
     chunk_counts: dict[str, int] = {}
     cut_rates: dict[str, dict[str, float]] = {}
 
+    def evaluate_method(
+        retriever: Retriever,
+        rel: dict[str, list[set[int]]],
+        strategy: str,
+        size: int,
+        emb: str | None,
+        method: str,
+        n_chunks: int,
+    ) -> None:
+        for split, qs in splits.items():
+            t0 = time.perf_counter()
+            ranked = retriever.search_batch([q.text for q in qs], method, settings.depth)
+            per_q = score_rankings(ranked, rel[split], settings.ks)
+            per_q_store[(strategy, size, emb, method, split)] = per_q
+            entries.append(
+                {
+                    "strategy": strategy,
+                    "size": size,
+                    "embedder": emb,
+                    "method": method,
+                    "split": split,
+                    "n_questions": len(qs),
+                    "n_chunks": n_chunks,
+                    "metrics": summarise(per_q, settings.n_boot, settings.seed),
+                }
+            )
+            log(
+                f"  {emb or '-':<42} {method:<14} {split:<11}"
+                f" mrr@10={per_q['mrr@10'].mean():.3f}"
+                f" r@5={per_q['recall@5'].mean():.3f} ({time.perf_counter() - t0:.1f}s)"
+            )
+
+    def relevance(chunks: list[Any]) -> dict[str, list[set[int]]]:
+        by_doc = doc_chunk_index(chunks)
+        return {
+            s: [question_relevant_chunks(q, prep, chunks, by_doc) for q in qs] for s, qs in splits.items()
+        }
+
+    # Phase 1: chunking x embedder grid with BM25, dense and hybrid retrieval.
     for strategy in settings.strategies:
         for size in settings.sizes:
             chunks = chunk_corpus(prep.docs, strategy, size)
-            by_doc = doc_chunk_index(chunks)
             key = f"{strategy}-{size}"
             chunk_counts[key] = len(chunks)
-            rel = {
-                s: [question_relevant_chunks(q, prep, chunks, by_doc) for q in qs] for s, qs in splits.items()
-            }
+            rel = relevance(chunks)
             cut_rates[key] = {s: float(np.mean([not r for r in rs])) for s, rs in rel.items()}
             log(f"[{key}] {len(chunks)} chunks; span-cut rate test {cut_rates[key]['test']:.3f}")
             runs: list[tuple[str | None, str]] = [(None, "bm25")]
             for name in settings.embedders:
                 runs += [(name, "dense"), (name, "hybrid")]
-                if name in settings.rerank_embedders:
-                    runs.append((name, "hybrid+rerank"))
             retrievers: dict[str | None, Retriever] = {}
             for emb, method in runs:
                 if emb not in retrievers:
                     t0 = time.perf_counter()
-                    need_rr = emb in settings.rerank_embedders
-                    retrievers[emb] = make_retriever(comps, chunks, emb, need_rr, cache_dir, settings.depth)
+                    retrievers[emb] = make_retriever(comps, chunks, emb, False, cache_dir, settings.depth)
                     log(f"  built {emb or 'bm25'} index in {time.perf_counter() - t0:.1f}s")
-                for split, qs in splits.items():
-                    t0 = time.perf_counter()
-                    ranked = retrievers[emb].search_batch([q.text for q in qs], method, settings.depth)
-                    per_q = score_rankings(ranked, rel[split], settings.ks)
-                    per_q_store[(strategy, size, emb, method, split)] = per_q
-                    entries.append(
-                        {
-                            "strategy": strategy,
-                            "size": size,
-                            "embedder": emb,
-                            "method": method,
-                            "split": split,
-                            "n_questions": len(qs),
-                            "n_chunks": len(chunks),
-                            "metrics": summarise(per_q, settings.n_boot, settings.seed),
-                        }
-                    )
-                    log(
-                        f"  {emb or '-':<42} {method:<14} {split:<11}"
-                        f" mrr@10={per_q['mrr@10'].mean():.3f}"
-                        f" r@5={per_q['recall@5'].mean():.3f} ({time.perf_counter() - t0:.1f}s)"
-                    )
+                evaluate_method(retrievers[emb], rel, strategy, size, emb, method, len(chunks))
 
-    calib = [e for e in entries if e["split"] == "calibration"]
-    best = max(calib, key=lambda e: (e["metrics"]["ndcg@10"][0], e["metrics"]["mrr@10"][0]))
+    def best_entry() -> dict[str, Any]:
+        calib = [e for e in entries if e["split"] == "calibration"]
+        return max(calib, key=lambda e: (e["metrics"]["ndcg@10"][0], e["metrics"]["mrr@10"][0]))
+
+    # Phase 2: the cross-encoder reranker (slow on CPU) is evaluated at the best phase-1 chunking.
+    best = best_entry()
+    grid_best = {k: best[k] for k in ("strategy", "size", "embedder", "method")}
+    rr_emb = best["embedder"] or settings.embedders[0]
+    chunks = chunk_corpus(prep.docs, best["strategy"], best["size"])
+    log(f"[rerank phase] {best['strategy']}-{best['size']} with {rr_emb}")
+    rr_retriever = make_retriever(comps, chunks, rr_emb, True, cache_dir, settings.depth)
+    evaluate_method(
+        rr_retriever, relevance(chunks), best["strategy"], best["size"], rr_emb, "hybrid+rerank", len(chunks)
+    )
+    best = best_entry()
     selected = {k: best[k] for k in ("strategy", "size", "embedder", "method")}
     selected["criterion"] = "nDCG@10 on the calibration split"
+    selected["best_before_reranker"] = grid_best
 
     # Paired comparisons on the test split at the selected chunking and embedder.
-    s, z, e_sel = best["strategy"], best["size"], best["embedder"]
-    emb_for_dense = e_sel or settings.embedders[0]
+    s, z = grid_best["strategy"], grid_best["size"]
+    emb_for_dense = rr_emb
 
     def pq(method: str) -> dict[str, np.ndarray] | None:
         emb = None if method == "bm25" else emb_for_dense
