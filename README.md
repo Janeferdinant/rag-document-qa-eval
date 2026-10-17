@@ -1,6 +1,6 @@
 # RAG Document QA Eval: retrieval-augmented question answering with a measured evaluation
 
-[![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+[![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 [![ci](https://github.com/Janeferdinant/rag-document-qa-eval/actions/workflows/ci.yml/badge.svg)](https://github.com/Janeferdinant/rag-document-qa-eval/actions/workflows/ci.yml)
 
 ## Summary
@@ -275,7 +275,7 @@ Data and models are credited in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.m
 
 ## License
 
-Original work © Jane Rose Ferdinant, licensed CC BY-NC-ND 4.0. Third-party components retain their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Original work © Jane Rose Ferdinant, licensed CC BY-SA 4.0. Third-party components retain their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Author
 

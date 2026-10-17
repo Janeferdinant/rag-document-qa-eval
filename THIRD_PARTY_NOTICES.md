@@ -1,6 +1,6 @@
 # Third-party notices
 
-Original code and documentation in this repository are © Jane Rose Ferdinant, licensed CC BY-NC-ND 4.0 (see `LICENSE`).
+Original code and documentation in this repository are © Jane Rose Ferdinant, licensed CC BY-SA 4.0 (see `LICENSE`).
 The components below are not covered by that licence. Each keeps its own licence. Licences and sources were checked on
 2026-10-15 at the URLs given. No dataset and no model weights are committed: both are downloaded at run time.
 
