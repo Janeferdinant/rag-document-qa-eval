@@ -6,19 +6,19 @@
 ## Summary
 
 <!-- BLOCK:summary:START -->
-| Component | Configuration | Metric | Test result (mean [95% CI]) |
-|---|---|---|---|
-| Best retriever | hybrid+rerank, sentence chunks of 160 words, all-MiniLM-L6-v2 | Recall@5 | 0.973 [0.961, 0.983] |
-| Best retriever | hybrid+rerank, sentence chunks of 160 words, all-MiniLM-L6-v2 | MRR@10 | 0.900 [0.883, 0.915] |
-| Best retriever | hybrid+rerank, sentence chunks of 160 words, all-MiniLM-L6-v2 | nDCG@10 | 0.921 [0.907, 0.934] |
-| BM25 baseline | same chunks | MRR@10 | 0.822 [0.799, 0.843] |
-| Best reader pipeline | minilm-uncased-squad2 + hybrid+rerank, top-1, abstain below margin 3.209 | Exact match | 0.704 [0.672, 0.734] |
-| Best reader pipeline | minilm-uncased-squad2 + hybrid+rerank, top-1, abstain below margin 3.209 | F1 | 0.732 [0.702, 0.761] |
-| Best reader pipeline | minilm-uncased-squad2 + hybrid+rerank, top-1, abstain below margin 3.209 | Abstention precision | 0.771 [0.730, 0.812] |
-| Best reader pipeline | minilm-uncased-squad2 + hybrid+rerank, top-1, abstain below margin 3.209 | Abstention recall | 0.797 [0.757, 0.835] |
-| Best reader pipeline | minilm-uncased-squad2 + hybrid+rerank, top-1, abstain below margin 3.209 | Answer in retrieved context | 0.850 [0.813, 0.884] |
-| Reader upper bound | gold paragraph given to the reader | F1 | 0.792 [0.763, 0.819] |
-| Latency (CPU) | hybrid+rerank, top-1, one query at a time | End-to-end p50 / p95 | 493 / 611 ms |
+| Component | Configuration | Metric | Test result (mean [95% CI]) | Status |
+|---|---|---|---|---|
+| Best retriever | hybrid+rerank, sentence chunks of 160 words, all-MiniLM-L6-v2 | Recall@5 | 0.973 [0.961, 0.983] | Verified (run 2026-10-15, seed 13) |
+| Best retriever | hybrid+rerank, sentence chunks of 160 words, all-MiniLM-L6-v2 | MRR@10 | 0.900 [0.883, 0.915] | Verified (run 2026-10-15, seed 13) |
+| Best retriever | hybrid+rerank, sentence chunks of 160 words, all-MiniLM-L6-v2 | nDCG@10 | 0.921 [0.907, 0.934] | Verified (run 2026-10-15, seed 13) |
+| BM25 baseline | same chunks | MRR@10 | 0.822 [0.799, 0.843] | Verified (run 2026-10-15, seed 13) |
+| Best reader pipeline | minilm-uncased-squad2 + hybrid+rerank, top-1, abstain below margin 3.209 | Exact match | 0.704 [0.672, 0.734] | Verified (run 2026-10-15, seed 13) |
+| Best reader pipeline | minilm-uncased-squad2 + hybrid+rerank, top-1, abstain below margin 3.209 | F1 | 0.732 [0.702, 0.761] | Verified (run 2026-10-15, seed 13) |
+| Best reader pipeline | minilm-uncased-squad2 + hybrid+rerank, top-1, abstain below margin 3.209 | Abstention precision | 0.771 [0.730, 0.812] | Verified (run 2026-10-15, seed 13) |
+| Best reader pipeline | minilm-uncased-squad2 + hybrid+rerank, top-1, abstain below margin 3.209 | Abstention recall | 0.797 [0.757, 0.835] | Verified (run 2026-10-15, seed 13) |
+| Best reader pipeline | minilm-uncased-squad2 + hybrid+rerank, top-1, abstain below margin 3.209 | Answer in retrieved context | 0.850 [0.813, 0.884] | Verified (run 2026-10-15, seed 13) |
+| Reader upper bound | gold paragraph given to the reader | F1 | 0.792 [0.763, 0.819] | Verified (run 2026-10-15, seed 13) |
+| Latency (CPU) | hybrid+rerank, top-1, one query at a time | End-to-end p50 / p95 | 493 / 611 ms | Verified (run 2026-10-15, 100 queries, batch size 1) |
 
 Test split: 800 answerable questions for retrieval and 800 questions (answerable and unanswerable) for answering, from 25 Wikipedia articles that are disjoint from the 10 calibration articles used to choose settings. 95% percentile-bootstrap intervals over questions.
 <!-- BLOCK:summary:END -->

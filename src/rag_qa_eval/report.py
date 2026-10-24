@@ -63,11 +63,13 @@ def _summary(retrieval: dict[str, Any], reader: dict[str, Any], latency: dict[st
     head, meta = reader["headline"], retrieval["meta"]
     t, o = head["test"], head["oracle_test"]
     rows: list[list[str]] = []
+    r_status = f"Verified (run {meta['date']}, seed {meta['settings']['seed']})"
+    a_status = f"Verified (run {reader['meta']['date']}, seed {reader['meta']['settings']['seed']})"
     cfg = f"{sel['method']}, {sel['strategy']} chunks of {sel['size']} words, {short(sel['embedder'])}"
     for key, label in (("recall@5", "Recall@5"), ("mrr@10", "MRR@10"), ("ndcg@10", "nDCG@10")):
-        rows.append(["Best retriever", cfg, label, ci(best["metrics"][key])])
+        rows.append(["Best retriever", cfg, label, ci(best["metrics"][key]), r_status])
     if base is not None and sel["method"] != "bm25":
-        rows.append(["BM25 baseline", "same chunks", "MRR@10", ci(base["metrics"]["mrr@10"])])
+        rows.append(["BM25 baseline", "same chunks", "MRR@10", ci(base["metrics"]["mrr@10"]), r_status])
     rcfg = f"{head['reader'].split('/')[-1]} + {head['method']}, top-{head['k']}, abstain below margin {head['threshold']}"
     for key, label in (
         ("em", "Exact match"),
@@ -76,13 +78,14 @@ def _summary(retrieval: dict[str, Any], reader: dict[str, Any], latency: dict[st
         ("abstain_recall", "Abstention recall"),
         ("answer_in_context", "Answer in retrieved context"),
     ):
-        rows.append(["Best reader pipeline", rcfg, label, ci(t[key])])
-    rows.append(["Reader upper bound", "gold paragraph given to the reader", "F1", ci(o["f1"])])
+        rows.append(["Best reader pipeline", rcfg, label, ci(t[key]), a_status])
+    rows.append(["Reader upper bound", "gold paragraph given to the reader", "F1", ci(o["f1"]), a_status])
     lat = latency["methods"].get(head["method"])
     if lat:
         e2e = lat["end_to_end_ms"]
         rows.append(["Latency (CPU)", f"{head['method']}, top-{head['k']}, one query at a time",
-                     "End-to-end p50 / p95", f"{e2e['p50']:.0f} / {e2e['p95']:.0f} ms"])  # fmt: skip
+                     "End-to-end p50 / p95", f"{e2e['p50']:.0f} / {e2e['p95']:.0f} ms",
+                     f"Verified (run {latency['meta']['date']}, {latency['meta']['n_queries']} queries, batch size 1)"])  # fmt: skip
     note = (
         f"Test split: {meta['n_test_questions']} answerable questions for retrieval and "
         f"{reader['meta']['n_test_questions']} questions (answerable and unanswerable) for answering, from "
@@ -91,7 +94,9 @@ def _summary(retrieval: dict[str, Any], reader: dict[str, Any], latency: dict[st
         "95% percentile-bootstrap intervals over questions."
     )
     return (
-        _table(["Component", "Configuration", "Metric", "Test result (mean [95% CI])"], rows) + "\n\n" + note
+        _table(["Component", "Configuration", "Metric", "Test result (mean [95% CI])", "Status"], rows)
+        + "\n\n"
+        + note
     )
 
 
