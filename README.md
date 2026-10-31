@@ -27,7 +27,7 @@ All numbers on this page are rendered from the run logs in [`docs/runs/`](docs/r
 
 ## Overview
 
-A small retrieval-augmented question-answering system over Wikipedia articles, built to be evaluated rather than demonstrated: chunking strategies, BM25, dense retrieval, hybrid fusion and an optional cross-encoder reranker are compared with confidence intervals, and the answers come from an extractive SQuAD 2.0 reader that can abstain. The error analysis separates questions lost by retrieval from questions lost by reading. Everything runs on a CPU with local models; the only paid-API path (Gemini) needs your own key and is never used in the tests or in the committed evaluation.
+A small retrieval-augmented question-answering system over Wikipedia articles, built to be evaluated rather than demonstrated: chunking strategies, BM25, dense retrieval, hybrid fusion and an optional cross-encoder reranker are compared with confidence intervals, and the answers come from an extractive SQuAD 2.0 reader that can abstain or, optionally, from a language model that must cite the passages it used and can abstain too (compared with the extractive reader on the same questions). The error analysis separates questions lost by retrieval from questions lost by reading. Everything runs on a CPU with local models; the only paid-API path (Gemini) needs your own key and is never used in the tests or in the committed evaluation.
 
 ## Demo
 
@@ -62,7 +62,7 @@ flowchart LR
 - **Chunking** (words, with character offsets so a chunk can be checked against the gold span): fixed-size, sliding window (50% overlap) and sentence-based, at 40, 80 and 160 words.
 - **Retrieval**: Okapi BM25 (own implementation), dense retrieval with `all-MiniLM-L6-v2` and `bge-small-en-v1.5`, reciprocal rank fusion (k = 60) of BM25 and dense, and an optional `ms-marco-MiniLM-L-6-v2` cross-encoder over the top 20.
 - **Reader**: `deepset/minilm-uncased-squad2` (default) and `deepset/tinyroberta-squad2`. Every retrieved chunk is read; the answer comes from the chunk with the largest margin between the best span score and the null score, and the system abstains when that margin is below a threshold tuned on calibration questions.
-- **LLM path**: an `LLMClient` interface with a Gemini implementation (key in a header, never in a URL, redacted in errors) and a deterministic mock used by the tests.
+- **LLM path**: an `LLMClient` interface with a Gemini implementation (key in a header, never in a URL, redacted in errors) and a deterministic mock used by the tests. A second, optional path (`pip install -e ".[llm]"`) asks local or subscription-CLI models for a JSON answer with passage numbers and an abstain flag, validates it, and scores it (`rag-qa evaluate --stage llm`); see [`docs/llm-answers.md`](docs/llm-answers.md).
 - **Metrics**: Recall@k (a hit if a retrieved chunk fully contains a gold answer span), MRR@10, nDCG@10; exact match and F1 as in SQuAD 2.0; abstention precision and recall; answer-in-context rate; faithfulness checks; percentile-bootstrap 95% intervals over questions (2,000 resamples) and paired bootstrap differences.
 
 ### Evaluation protocol
@@ -205,6 +205,12 @@ Examples (SQuAD 2.0 questions, ids hashed; text from Wikipedia via SQuAD, CC BY-
 Passages: the top 5 from hybrid+rerank over sentence chunks of 160 words (all-MiniLM-L6-v2). Prompt hash `533d7560473c`. The sample is 100 questions, stratified by answerable or unanswerable, seed 0. Hosted arms run through the vendors' command line tools, so they measure the model plus each tool's own system prompt, and their latency includes the tool's start-up. Cost is the API-equivalent price of the tokens used, not money paid. Invalid answers (no valid cited answer after one retry) count as wrong. Faithfulness is judged by qwen3:8b on answered questions (0 unsupported, 1 partly, 2 fully supported by the cited passages). This judge was not calibrated for this rubric: its calibration measured answer correctness (100 SQuAD 2.0 answers graded against gold answers, labelled by the author; weighted kappa 0.835, 95% CI 0.682 to 0.945; llm-eval-harness v0.1.0 README). Treat the faithfulness column as a rough check, not a validated measurement.
 <!-- BLOCK:llm:END -->
 
+The top 5 passages go to a model that must return an answer, the numbers of the passages it used, and an abstain flag; invalid replies get one retry and then count as wrong. The two local arms ran on all 800 test questions; the table also scores them on the same 100-question sample that hosted arms would use. [`docs/llm-answers.md`](docs/llm-answers.md) explains the scoring and shows five real failures.
+
+- **`qwen3:4b` matches the extractive reader on the sample; `qwen3:8b` does not.** The paired F1 difference from the extractive baseline is -0.031 [-0.127, 0.061] for `qwen3:4b` and -0.278 [-0.402, -0.157] for `qwen3:8b`. The reason is abstention: on the 394 unanswerable test questions `qwen3:8b` abstained on 23, `qwen3:4b` on 303 (the extractive reader on 314).
+- **Two fixes came from looking at results, and both runs are kept.** The first prompt made `qwen3:4b` abstain on nearly everything (log: `docs/runs/2026-10-30-llm-prompt-v1.md`); the wording was then chosen on calibration questions, not test questions. A parser that rejected `"answer": "abstain"` with the flag set produced 56.5% invalid replies (log: `docs/runs/2026-10-30-llm-strict-parser.md`) and was relaxed for that one case.
+- **Not measured yet:** hosted models (Claude Code and Codex CLI arms on the 100-question sample). The faithfulness column uses a judge that was calibrated for another rubric, so treat it as a rough check.
+
 ### Reading the results
 
 Numbers below are quoted from the tables above and from `docs/runs/2026-10-15-*.json`.
@@ -244,6 +250,14 @@ make evaluate                   # retrieval, reader and latency stages; writes d
 make report                     # re-renders the tables in this README and docs/results.md from the run logs
 ```
 
+Optional LLM answers (needs [Ollama](https://ollama.com) with `qwen3:4b` and `qwen3:8b` pulled, and the reader stage already run):
+
+```bash
+pip install -e ".[llm]"          # evaluation tools from llm-eval-harness
+rag-qa evaluate --stage llm --arms qwen3:4b qwen3:8b --sample-n 100 --judge qwen3:8b   # about 25 minutes
+rag-qa report
+```
+
 Ask a question from the command line:
 
 ```bash
@@ -259,15 +273,18 @@ pip install playwright==1.64.0 && playwright install chromium
 make e2e
 ```
 
-`make demo-data` regenerates `docs/data/` from the latest reader run.
+`make demo-data` regenerates `docs/data/` from the latest reader run; `make demo-data LLM_ARM=qwen3:4b` also adds that local arm's answers (read back from the response cache) to the examples.
 
 ## Project structure
 
 ```
 src/rag_qa_eval/   chunking, bm25, fusion, retrieval, models, reader (abstention), llm, qa_metrics, metrics,
-                   analysis, eval_retrieval / eval_reader / eval_latency, report, demo_export, cli
+                   analysis, eval_retrieval / eval_reader / eval_latency, report, demo_export, cli;
+                   optional: llm_answers, llm_metrics, eval_llm, demo_llm, tracing (the `llm` and `tracing` extras)
 tests/             pytest (fast, no downloads); tests/e2e has the Playwright checks
-docs/              index.html, rag.js, app.js, style.css, data/ (demo), runs/ (run logs), results.md, screenshots/
+scripts/           prompt_probe.py (prompt wordings on the calibration split)
+docs/              index.html, rag.js, app.js, style.css, data/ (demo), runs/ (run logs), results.md, screenshots/,
+                   llm-answers.md (findings), llm-answers-design.md (design)
 ```
 
 ## Limitations
@@ -276,7 +293,7 @@ docs/              index.html, rag.js, app.js, style.css, data/ (demo), runs/ (r
 - **A small subset.** The corpus is the 35 SQuAD 2.0 dev articles (1,204 paragraphs, about 152,000 words), so the retrieval task is easier than a large collection would be. Retrieval is scored on 800 and answering on 800 seeded test questions from 25 articles, and settings were chosen on 300 questions from 10 other articles. Intervals reflect question sampling only: a single article split and question sample (seed 13) was used, so the sensitivity of the conclusions to other splits was not measured. The abstention threshold is tuned on only 300 calibration questions.
 - **Training-data overlap.** The default embedder `all-MiniLM-L6-v2` lists SQuAD 2.0 (87,599 pairs) among its training data. That count is close to the size of the SQuAD training split, so the dev set is probably not included, but the card does not say, and the model has at least seen SQuAD-style questions. The `bge-small` card was not checked for this. The reranker was trained on MS MARCO. Both could advantage the neural retrievers on SQuAD; BM25 still scored higher.
 - **Extractive reader limits.** It can only copy a span of at most 30 tokens from one chunk, so it cannot combine facts from several passages, rephrase or answer yes/no questions. Exact match penalises valid alternative spans, one reason for the "boundary mismatch" category. The abstention threshold is one global margin, not calibrated per question.
-- **Faithfulness is only checked lexically.** The check asks whether the answer text occurs in the cited chunk (0.992 for the extractive reader, which is close to 1 by construction) and, for good answers, whether the cited chunk contains a gold span. It is not an entailment test. No LLM answers are part of the committed evaluation, so there is no measured faithfulness figure for generated answers.
+- **Faithfulness is only checked lexically.** The check asks whether the answer text occurs in the cited chunk (0.992 for the extractive reader, which is close to 1 by construction) and, for good answers, whether the cited chunk contains a gold span. It is not an entailment test. For generated answers the LLM stage adds a judged faithfulness score (0 to 2), but its judge (`qwen3:8b`) was calibrated for answer correctness, not for this rubric, so that figure is a rough check, not a validated measurement.
 - **The Gemini path is only tested against mocks.** The Python client and the browser demo were exercised with a mocked transport and a mocked request, never against the real API, so model availability, CORS behaviour, quotas and billing messages in real use are untested here. Model ids were read from Google's model list on 2026-10-15 and may change.
 - **Grid limits.** Chunk sizes stop at 160 words because the embedders truncate at 256 word pieces; the best sizes were at that edge. The reranker was evaluated at one chunking, and BM25 uses a plain tokenizer without stemming.
 - **Timing.** Latencies were measured once, on 100 questions, on a shared 16-thread desktop CPU, with one query at a time. They are indicative, not a benchmark. The retrieval and reader stages took 23 and 25 minutes of wall time (1,386 s and 1,479 s) on that machine.
@@ -285,7 +302,8 @@ docs/              index.html, rag.js, app.js, style.css, data/ (demo), runs/ (r
 ## Future scope
 
 - Re-run with a larger and a more varied corpus (more articles, other domains, other languages) to see which conclusions survive.
-- Try a stronger reader or an LLM reader inside the evaluation and report the cost per answer; the `LLMClient` interface and the faithfulness check are in place for it.
+- Run hosted models (through their command line tools) on the same 100-question sample and compare cost per answer; the stage and the arms are in place, the runs are not.
+- Calibrate a faithfulness judge for the citation rubric with a small human-labelled sample.
 - Replace the lexical faithfulness check with an entailment model and a small human-labelled sample.
 - Fine-tune the embedder and the reranker on the training questions and compare with the zero-shot models.
 - Tune the abstention rule jointly with retrieval (for example a margin that also uses the retrieval score).
