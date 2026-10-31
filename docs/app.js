@@ -112,6 +112,33 @@ function renderResult({ question, tag, live, answer, citedRank, chunks, notes = 
   box.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
 }
 
+function llmBlock(llm) {
+  const sec = el('section', { class: 'llm', id: 'llm-answer' })
+  sec.append(el('h3', {}, 'LLM answer ', el('span', { class: 'llm-tag', text: 'Precomputed, not a live model' })))
+  sec.append(el('p', { class: 'meta', text: `${llm.model}, run locally on the top ${llm.passages.length} passages of the evaluation. Citations are passage numbers checked by the evaluation code.` }))
+  if (!llm.valid) {
+    sec.append(el('p', { class: 'llm-answer none', text: 'The model gave no valid cited answer, even after one retry. The evaluation counts this as wrong.' }))
+  } else if (llm.abstained) {
+    sec.append(el('p', { class: 'llm-answer none', text: 'No answer: the model abstained. The evaluation checks whether a passage held the answer; this page does not.' }))
+  } else {
+    const p = el('p', { class: 'llm-answer' }, llm.answer)
+    for (const n of llm.citations) p.append(' ', el('span', { class: 'llm-cite', text: `[${n}]` }))
+    sec.append(p)
+  }
+  const details = el('details', { class: 'llm-passages' }, el('summary', { text: `Passages the model saw (top ${llm.passages.length})` }))
+  const list = el('ol', { class: 'passages' })
+  for (const c of llm.passages) {
+    const cited = llm.citations.includes(c.rank)
+    const li = el('li', { class: `llm-passage${cited ? ' cited' : ''}` })
+    li.append(el('div', { class: 'head' }, el('span', { class: 'n', text: `[${c.rank}]` }), el('span', { text: c.title.replaceAll('_', ' ') }), cited ? el('span', { text: 'cited' }) : ''))
+    li.append(el('p', { text: c.text }))
+    list.append(li)
+  }
+  details.append(list)
+  sec.append(details)
+  return sec
+}
+
 // ---- actions ----
 
 function showExample(ex, button) {
@@ -135,6 +162,7 @@ function showExample(ex, button) {
     ],
     outcome,
   })
+  if (ex.llm) $('result').append(llmBlock(ex.llm))
 }
 
 async function ask(question) {

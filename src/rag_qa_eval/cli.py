@@ -9,6 +9,7 @@ import time
 from collections.abc import Sequence
 from dataclasses import replace
 from pathlib import Path
+from typing import Any
 
 from .evalcommon import (
     Settings,
@@ -77,12 +78,67 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
             if stage == "reader":
                 result = run_reader(prep, settings, comps, cache_dir, retrieval, _log)
                 md = reader_markdown(result)
+            elif stage == "llm":
+                code = _llm_stage(args, prep, settings, comps, cache_dir, retrieval, out_dir, t0)
+                if code:
+                    return code
+                continue
             else:
                 reader_result = latest_run(out_dir, "reader")
                 result = run_latency(prep, settings, comps, cache_dir, retrieval, reader_result, _log)
                 md = latency_markdown(result)
         jp, mp = write_run(out_dir, stage, result, md)
         _log(f"wrote {jp} and {mp} ({time.perf_counter() - t0:.0f}s)")
+    return 0
+
+
+def _llm_stage(
+    args: argparse.Namespace,
+    prep: Any,
+    settings: Settings,
+    comps: Any,
+    cache_dir: Path,
+    retrieval: dict[str, Any],
+    out_dir: Path,
+    t0: float,
+) -> int:
+    """The optional LLM answering stage (needs `pip install ".[llm]"`). Returns a nonzero exit code to stop."""
+    try:
+        from evalharness.llm.base import UsageLimitError, get_client
+        from evalharness.llm.cache import CachingClient
+
+        from .eval_llm import ArmSpec, arm_client, llm_markdown, ollama_processor, parse_arms, run_llm
+        from .tracing import setup_tracing
+    except ImportError:
+        _log('the llm stage needs the optional dependency: pip install ".[llm]"')
+        return 2
+    reader_result = latest_run(out_dir, "reader")
+    if reader_result is None:
+        _log("run the reader stage first")
+        return 2
+
+    def factory(arm: ArmSpec) -> Any:
+        return arm_client(arm, cache_dir)
+
+    judge = None
+    if args.judge != "none":
+        judge_client = CachingClient(
+            get_client("ollama"), cache_dir / "llm" / "judge", salt=f"judge:{args.judge}"
+        )
+        judge = (judge_client, args.judge)
+    try:
+        result = run_llm(
+            prep, settings, comps, cache_dir, retrieval, reader_result, parse_arms(args.arms), factory,
+            judge=judge, sample_n=args.sample_n, tracer=setup_tracing(), log=_log,
+            processor_probe=ollama_processor,
+        )  # fmt: skip
+    except UsageLimitError as e:
+        _log(
+            f"usage limit reached ({e.provider}); finished answers are cached: rerun the same command to resume"
+        )
+        return 3
+    jp, mp = write_run(out_dir, "llm", result, llm_markdown(result))
+    _log(f"wrote {jp} and {mp} ({time.perf_counter() - t0:.0f}s)")
     return 0
 
 
@@ -164,7 +220,7 @@ def cmd_report(args: argparse.Namespace) -> int:
 def cmd_export_demo(args: argparse.Namespace) -> int:
     from .demo_export import export_demo
 
-    export_demo(args.data_dir, args.runs, args.out)
+    export_demo(args.data_dir, args.runs, args.out, args.llm_arm)
     _log(f"wrote demo data to {args.out}")
     return 0
 
@@ -180,13 +236,19 @@ def build_parser() -> argparse.ArgumentParser:
     i.set_defaults(fn=cmd_ingest)
 
     e = sub.add_parser("evaluate", help="run the evaluation stages and write docs/runs logs")
-    e.add_argument("--stage", choices=["retrieval", "reader", "latency", "all"], default="all")
+    e.add_argument("--stage", choices=["retrieval", "reader", "latency", "llm", "all"], default="all")
     e.add_argument("--smoke", action="store_true", help="tiny settings; logs go to .tmp/smoke-runs")
     e.add_argument("--data-dir", type=Path, default=DEFAULT_DATA)
     e.add_argument("--out", type=Path, default=None)
     e.add_argument("--seed", type=int, default=13)
     e.add_argument("--n-test", type=int, default=0, help="override the number of test questions")
     e.add_argument("--readers", nargs="+", default=None)
+    e.add_argument("--arms", nargs="+", default=["qwen3:4b", "qwen3:8b"],
+                   help="llm stage: Ollama models (name:tag), claude_code, codex_cli")  # fmt: skip
+    e.add_argument("--sample-n", type=int, default=100, help="llm stage: size of the stratified sample")
+    e.add_argument(
+        "--judge", default="qwen3:8b", help="llm stage: Ollama model that judges faithfulness, or none"
+    )
     e.set_defaults(fn=cmd_evaluate)
 
     a = sub.add_parser("ask", help="ask one question over the SQuAD corpus or your own text files")
@@ -211,6 +273,9 @@ def build_parser() -> argparse.ArgumentParser:
     d.add_argument("--data-dir", type=Path, default=DEFAULT_DATA)
     d.add_argument("--runs", type=Path, default=DEFAULT_RUNS)
     d.add_argument("--out", type=Path, default=Path("docs/data"))
+    d.add_argument(
+        "--llm-arm", help='also precompute LLM answers for the examples with this local arm, e.g. "qwen3:8b"'
+    )
     d.set_defaults(fn=cmd_export_demo)
     return p
 

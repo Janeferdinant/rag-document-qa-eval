@@ -238,9 +238,12 @@ def _latency(latency: dict[str, Any]) -> str:
 
 
 def render_blocks(
-    retrieval: dict[str, Any], reader: dict[str, Any], latency: dict[str, Any]
+    retrieval: dict[str, Any],
+    reader: dict[str, Any],
+    latency: dict[str, Any],
+    llm: dict[str, Any] | None = None,
 ) -> dict[str, str]:
-    return {
+    blocks = {
         "summary": _summary(retrieval, reader, latency),
         "ablation": _ablation(retrieval),
         "topk": _topk(retrieval),
@@ -248,6 +251,11 @@ def render_blocks(
         "errors": _errors(reader),
         "latency": _latency(latency),
     }
+    if llm is not None:
+        from .llm_report import llm_tables
+
+        blocks["llm"] = llm_tables(llm)
+    return blocks
 
 
 def write_report(runs_dir: Path, readme: Path, results: Path) -> None:
@@ -256,9 +264,10 @@ def write_report(runs_dir: Path, readme: Path, results: Path) -> None:
     latency = latest_run(runs_dir, "latency")
     if not (retrieval and reader and latency):
         raise FileNotFoundError("run all three evaluation stages first (retrieval, reader, latency)")
-    blocks = render_blocks(retrieval, reader, latency)
+    llm = latest_run(runs_dir, "llm")
+    blocks = render_blocks(retrieval, reader, latency, llm)
     text = readme.read_text(encoding="utf8")
-    for name in BLOCKS:
+    for name in BLOCKS + (("llm",) if llm else ()):
         text = replace_block(text, name, blocks[name])
     readme.write_text(text, encoding="utf8")
     results.parent.mkdir(parents=True, exist_ok=True)
@@ -268,6 +277,13 @@ def write_report(runs_dir: Path, readme: Path, results: Path) -> None:
         + "\n"
         + reader_markdown(reader).replace("# ", "## ", 1)
         + "\n"
-        + latency_markdown(latency).replace("# ", "## ", 1),
+        + latency_markdown(latency).replace("# ", "## ", 1)
+        + (_llm_results(llm) if llm else ""),
         encoding="utf8",
     )
+
+
+def _llm_results(llm: dict[str, Any]) -> str:
+    from .llm_report import llm_markdown
+
+    return "\n" + llm_markdown(llm).replace("# ", "## ", 1)

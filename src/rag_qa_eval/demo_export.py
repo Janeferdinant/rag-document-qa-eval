@@ -46,7 +46,47 @@ def settings_from_dict(d: dict[str, Any]) -> Settings:
     return Settings(**fixed)
 
 
-def export_demo(data_dir: Path, runs_dir: Path, out_dir: Path) -> None:
+def add_llm_answers(
+    examples: list[dict[str, Any]],
+    questions: list[str],
+    llm_arm: str,
+    prep: Any,
+    settings: Settings,
+    comps: Any,
+    data_dir: Path,
+    runs_dir: Path,
+) -> dict[str, Any]:
+    """Attach each example's LLM answer, made from the top-5 passages exactly as the `llm` stage made it, so the
+    answers come back from the stage's response cache. Local (Ollama) arms only: a cache miss must never spend
+    a subscription's usage."""
+    from .demo_llm import llm_demo_block
+    from .eval_llm import K, arm_client, llm_retriever, parse_arms
+
+    arm = parse_arms([llm_arm])[0]
+    if arm.provider != "ollama":
+        raise ValueError(f"the demo shows local arms only, not {llm_arm!r}")
+    retrieval_run = latest_run(runs_dir, "retrieval")
+    if retrieval_run is None:
+        raise FileNotFoundError("run the retrieval stage first")
+    cache_dir = data_dir / "cache"
+    chunks, retriever, method, _, _ = llm_retriever(prep, settings, comps, cache_dir, retrieval_run)
+    client = arm_client(arm, cache_dir)
+    for ex, top in zip(examples, retriever.search_batch(questions, method, K), strict=True):
+        passages = [
+            {"rank": r + 1, "title": prep.docs[chunks[p].doc_id].title, "text": chunks[p].text}
+            for r, p in enumerate(top)
+        ]
+        ex["llm"] = llm_demo_block(ex["question"], passages, client=client, model=arm.model)
+    llm_run = latest_run(runs_dir, "llm")
+    return {
+        "arm": arm.name,
+        "model": arm.model,
+        "passages": K,
+        "run_date": llm_run["meta"]["date"] if llm_run else None,
+    }
+
+
+def export_demo(data_dir: Path, runs_dir: Path, out_dir: Path, llm_arm: str | None = None) -> None:
     reader_run = latest_run(runs_dir, "reader")
     if reader_run is None:
         raise FileNotFoundError("run the reader stage first")
@@ -137,7 +177,7 @@ def export_demo(data_dir: Path, runs_dir: Path, out_dir: Path) -> None:
         f"{ch['strategy']} chunks of {ch['size']} words, top {head['k']} passages, "
         f"abstention margin threshold {head['threshold']}"
     )
-    ex = {
+    ex: dict[str, Any] = {
         "meta": {
             "date": reader_run["meta"]["date"],
             "pipeline": pipeline,
@@ -145,6 +185,10 @@ def export_demo(data_dir: Path, runs_dir: Path, out_dir: Path) -> None:
         },
         "examples": examples,
     }
+    if llm_arm is not None:
+        ex["meta"]["llm"] = add_llm_answers(
+            examples, [test_qs[i].text for i in chosen], llm_arm, prep, settings, comps, data_dir, runs_dir
+        )
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "sample_corpus.json").write_text(json.dumps(corpus, ensure_ascii=False), encoding="utf8")
     (out_dir / "bm25_index.json").write_text(

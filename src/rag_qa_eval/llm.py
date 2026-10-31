@@ -14,9 +14,12 @@ import urllib.error
 import urllib.request
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from typing import Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from .bm25 import tokenize
+
+if TYPE_CHECKING:  # pragma: no cover
+    from evalharness.llm.base import LLMClient as HarnessLLMClient
 
 GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"  # listed at ai.google.dev/gemini-api/docs/models on 2026-10-15
@@ -189,3 +192,24 @@ class LLMReader:
             return LLMAnswer(None, None, raw)
         idx = next((c - 1 for c in parsed.citations if 1 <= c <= len(chunks)), None)
         return LLMAnswer(parsed.text, idx, raw)
+
+
+class HarnessClient:
+    """Gives any `evalharness` client the `generate(prompt) -> str` interface of this module, so `LLMReader` and
+    `rag-qa ask` can use Ollama, Claude Code, Codex and the rest. Needs the `llm` extra."""
+
+    def __init__(self, client: HarnessLLMClient, model: str) -> None:
+        self._client = client
+        self.model = model
+        self.name = f"{getattr(client, 'provider', type(client).__name__)}:{model}"
+
+    def generate(self, prompt: str, *, temperature: float = 0.0, max_output_tokens: int = 256) -> str:
+        from evalharness.llm.base import Message
+
+        reply: Any = self._client.complete(
+            [Message(role="user", content=prompt)],
+            model=self.model,
+            temperature=temperature,
+            max_tokens=max_output_tokens,
+        )
+        return str(reply.text)
