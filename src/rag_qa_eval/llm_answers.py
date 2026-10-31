@@ -7,8 +7,9 @@ statistics from `llm-eval-harness`.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass, field
 
-from evalharness.llm.base import Completion, Message, extract_json
+from evalharness.llm.base import Completion, LLMClient, Message, extract_json
 from pydantic import BaseModel, ValidationError
 
 SYSTEM_PROMPT = (
@@ -64,3 +65,59 @@ def parse_answer(c: Completion, n_passages: int) -> CitedAnswer:
     if not citations:
         raise AnswerFormatError("an answer needs at least one citation")
     return CitedAnswer(answer=parsed.answer.strip(), citations=citations, abstain=False)
+
+
+@dataclass
+class AnswerResult:
+    """One question's outcome. `valid` is False when the model never produced a valid cited answer (after one
+    retry); such a question is still counted, as a wrong answer, never dropped. `answer` is None when the model
+    abstained or the reply was invalid (`abstained` tells which)."""
+
+    answer: str | None
+    citations: list[int]
+    abstained: bool
+    valid: bool
+    invalid_reason: str | None = None
+    completions: list[Completion] = field(default_factory=list)
+
+
+def generate_answer(question: str, passages: Sequence[str], *, client: LLMClient, model: str) -> AnswerResult:
+    """Ask `client` for a cited answer. An invalid reply is retried once with the validation error appended.
+    No passages means abstain without a model call. A usage limit is not caught: the caller stops and resumes."""
+    if not passages:
+        return AnswerResult(answer=None, citations=[], abstained=True, valid=True)
+    messages = build_messages(question, passages)
+    completions: list[Completion] = []
+    reason = ""
+    for _ in range(2):
+        try:
+            c = client.complete(
+                messages, model=model, temperature=0.0, seed=0, max_tokens=1024, response_schema=CitedAnswer
+            )
+        except ValueError as e:  # the client could not produce the schema (it validates and retries itself)
+            reason = str(e)
+            messages = [*messages, Message(role="user", content=_retry_text(reason))]
+            continue
+        completions.append(c)
+        try:
+            parsed = parse_answer(c, len(passages))
+        except AnswerFormatError as e:
+            reason = str(e)
+            messages = [
+                *messages,
+                Message(role="assistant", content=c.text),
+                Message(role="user", content=_retry_text(reason)),
+            ]
+            continue
+        if parsed.abstain:
+            return AnswerResult(None, [], abstained=True, valid=True, completions=completions)
+        return AnswerResult(
+            parsed.answer, parsed.citations, abstained=False, valid=True, completions=completions
+        )
+    return AnswerResult(
+        None, [], abstained=False, valid=False, invalid_reason=reason, completions=completions
+    )
+
+
+def _retry_text(reason: str) -> str:
+    return f"Your reply was not valid: {reason}. Reply again with a valid JSON object."
