@@ -75,3 +75,9 @@ def test_pick_examples_is_seeded_and_capped_per_category():
     assert a == b
     assert sum(r["category"] == "correct" for r in a) == 3
     assert sum(r["category"] == "false_answer" for r in a) == 3
+
+
+def test_pick_examples_can_use_another_category_list():
+    rows = [{"qid": f"q{i}", "category": "a" if i < 4 else "b"} for i in range(6)]
+    picked = pick_examples(rows, per_category=2, seed=0, categories=("b", "a"))
+    assert [r["category"] for r in picked] == ["b", "b", "a", "a"]

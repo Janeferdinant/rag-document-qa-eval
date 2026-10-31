@@ -30,41 +30,20 @@ from .evalcommon import (
     Prepared,
     Settings,
     chunk_corpus,
-    fmt_ci,
     hardware_info,
     settings_dict,
     today,
 )
 from .llm_answers import SYSTEM_PROMPT, AnswerResult, generate_answer
 from .llm_metrics import citation_precision, citation_recall
+from .llm_report import BASELINE, CATEGORIES, DESCRIPTIONS, llm_markdown, llm_tables  # noqa: F401
 from .metrics import bootstrap_ci, bootstrap_ratio_ci
 from .qa_metrics import answer_in_context, score_prediction, supported_by_chunk
 from .retrieval import Retriever, chunk_contains_span
 from .tracing import record_answer
 
 K = 5
-BASELINE = "extractive-baseline"
 SAMPLE_SEED = 0
-CATEGORIES = (
-    "correct",
-    "wrong_citation",
-    "retrieval_failure",
-    "over_abstention",
-    "wrong_answer",
-    "correct_abstention",
-    "missed_abstention",
-    "invalid_output",
-)
-DESCRIPTIONS = {
-    "correct": "answerable, answer matches a gold answer and the cited passage contains it",
-    "wrong_citation": "answerable, answer matches a gold answer but the cited passages do not contain a gold span",
-    "retrieval_failure": "answerable, but no retrieved passage contains a gold answer string",
-    "over_abstention": "answerable, a retrieved passage contains the answer, the model abstained",
-    "wrong_answer": "answerable, the answer does not match a gold answer",
-    "correct_abstention": "unanswerable, the model abstained",
-    "missed_abstention": "unanswerable, the model gave an answer",
-    "invalid_output": "no valid cited answer after one retry",
-}
 FAITHFULNESS_RUBRIC = (
     "Judge whether the answer is supported by the cited passages, on a scale from 0 to 2.\n"
     "2 = fully supported: the cited passages state what the answer says.\n"
@@ -190,6 +169,8 @@ def summarise_rows(rows: Sequence[dict[str, Any]], n_boot: int, seed: int) -> di
     """Metrics with 95% bootstrap intervals over questions for one arm on one set of questions."""
     ans = np.asarray([r["answerable"] for r in rows], dtype=bool)
     no = ~ans
+    # An unanswerable question has no gold span to cite, so citation precision and recall are over answerable ones.
+    answerable_rows = [r for r in rows if r["answerable"]]
     abst = np.asarray([r["abstained"] for r in rows], dtype=float)
     em = np.asarray([r["em"] for r in rows], dtype=float)
     f1 = np.asarray([r["f1"] for r in rows], dtype=float)
@@ -209,8 +190,8 @@ def summarise_rows(rows: Sequence[dict[str, Any]], n_boot: int, seed: int) -> di
         "abstain_precision": [round(x, 4) for x in precision],
         "abstain_recall": [round(x, 4) for x in recall],
         "abstain_f1": round(2 * p * r / (p + r), 4) if p + r else 0.0,
-        "citation_precision": _ci(_defined(rows, "citation_precision"), n_boot, seed),
-        "citation_recall": _ci(_defined(rows, "citation_recall"), n_boot, seed),
+        "citation_precision": _ci(_defined(answerable_rows, "citation_precision"), n_boot, seed),
+        "citation_recall": _ci(_defined(answerable_rows, "citation_recall"), n_boot, seed),
         "supported_by_cited_passage": _ci(_defined(rows, "supported"), n_boot, seed),
         "invalid_rate": round(sum(1 for x in rows if not x["valid"]) / n, 4),
         "latency_p50_s": round(float(np.percentile(lat, 50)), 3) if lat.any() else None,
@@ -224,6 +205,21 @@ def summarise_rows(rows: Sequence[dict[str, Any]], n_boot: int, seed: int) -> di
     out["faithfulness_n"] = len(faith)
     out["fully_supported_share"] = _ci([1.0 if v == 2 else 0.0 for v in faith], n_boot, seed)
     return out
+
+
+def _paired(base: Sequence[dict[str, Any]], rows: Sequence[dict[str, Any]], n_boot: int) -> dict[str, Any]:
+    """Mean [95% CI] of arm minus baseline on the same questions (rows are matched by question id)."""
+    order = {r["qid"]: i for i, r in enumerate(base)}
+    aligned = sorted(rows, key=lambda r: order[r["qid"]])
+    return {
+        key: [
+            round(x, 4)
+            for x in paired_bootstrap_delta(
+                [r[key] for r in base], [r[key] for r in aligned], n_resamples=n_boot, seed=0
+            )
+        ]
+        for key in ("f1", "em")
+    }
 
 
 def _baseline_rows(
@@ -336,6 +332,7 @@ def run_llm(
 
     by_arm: dict[str, dict[str, Any]] = {}
     paired: dict[str, dict[str, Any]] = {}
+    paired_all: dict[str, dict[str, Any]] = {}
     base_all = per_question[BASELINE]
     base_sample = [r for q, r in zip(test, base_all, strict=True) if q.qid in sample_ids]
     sample_anon = {anonymise_id(q) for q in sample_ids}
@@ -351,33 +348,28 @@ def run_llm(
             entry["all"] = summarise_rows(rows, settings.n_boot, settings.seed)
         entry["sample"] = summarise_rows(sample_rows, settings.n_boot, settings.seed)
         by_arm[arm.name] = entry
-        order = {r["qid"]: i for i, r in enumerate(base_sample)}
-        aligned = sorted(sample_rows, key=lambda r: order[r["qid"]])
-        paired[arm.name] = {
-            key: [
-                round(x, 4)
-                for x in paired_bootstrap_delta(
-                    [r[key] for r in base_sample],
-                    [r[key] for r in aligned],
-                    n_resamples=settings.n_boot,
-                    seed=0,
-                )
-            ]
-            for key in ("f1", "em")
-        }
+        paired[arm.name] = _paired(base_sample, sample_rows, settings.n_boot)
+        if arm.sample == "all":
+            paired_all[arm.name] = _paired(base_all, rows, settings.n_boot)
 
-    headline = next((a.name for a in arms if a.sample == "all"), arms[0].name if arms else BASELINE)
-    head_rows = per_question.get(headline, base_all)
-    counts = {c: sum(1 for r in head_rows if r.get("category") == c) for c in CATEGORIES}
     by_id = {anonymise_id(q.qid): q for q in test}
-    examples = []
-    for r in pick_examples([x for x in head_rows if "category" in x], per_category=3, seed=settings.seed):
-        q = by_id[r["qid"]]
-        examples.append(
-            {"id": r["qid"], "category": r["category"], "question": q.text,
-             "gold": [a.text for a in q.answers][:2], "prediction": r["_prediction"],
-             "cited_excerpt": r["_cited_text"], "citations": r["cited"]}
-        )  # fmt: skip
+    error_arms: dict[str, Any] = {}
+    for arm in arms:
+        if arm.sample != "all":
+            continue
+        arm_rows = per_question[arm.name]
+        examples = []
+        for r in pick_examples(arm_rows, per_category=2, seed=settings.seed, categories=CATEGORIES):
+            q = by_id[r["qid"]]
+            examples.append(
+                {"id": r["qid"], "category": r["category"], "question": q.text,
+                 "gold": sorted({a.text for a in q.answers})[:2], "prediction": r["_prediction"],
+                 "cited_excerpt": r["_cited_text"], "citations": r["cited"]}
+            )  # fmt: skip
+        error_arms[arm.name] = {
+            "counts": {c: sum(1 for r in arm_rows if r["category"] == c) for c in CATEGORIES},
+            "examples": examples,
+        }
     for rows in per_question.values():
         for r in rows:
             r.pop("_prediction", None)
@@ -396,6 +388,7 @@ def run_llm(
         "prompt_sha256": prompt_sha256(),
         "arms": arm_meta,
         "baseline": reader_result["headline"]["reader"],
+        "baseline_k": reader_result["headline"]["k"],
         "judge": None,
     }
     if judge is not None:
@@ -405,12 +398,8 @@ def run_llm(
         "baseline": by_arm[BASELINE],
         "arms": {a.name: by_arm[a.name] for a in arms},
         "paired": paired,
-        "error_analysis": {
-            "arm": headline,
-            "counts": counts,
-            "descriptions": DESCRIPTIONS,
-            "examples": examples,
-        },
+        "paired_all": paired_all,
+        "error_analysis": {"descriptions": DESCRIPTIONS, "arms": error_arms},
         "per_question": per_question,
     }
 
@@ -435,124 +424,6 @@ def _judge_rows(
             row["faithfulness"] = metric.score(case, Output(text=row["_prediction"])).value
         except ValueError:  # an unreadable judge reply: left unscored, counted by faithfulness_n
             row["faithfulness"] = None
-
-
-ACCESS = {
-    "ollama": "local (Ollama)",
-    "claude_code": "via Claude Code on a Team subscription",
-    "codex_cli": "via Codex CLI on a ChatGPT Plus subscription",
-}
-
-
-def _c(cell: list[float] | None) -> str:
-    return "n/a" if cell is None else fmt_ci(cell)
-
-
-def _table(header: list[str], rows: list[list[str]]) -> str:
-    out = ["| " + " | ".join(header) + " |", "|" + "|".join("---" for _ in header) + "|"]
-    return "\n".join(out + ["| " + " | ".join(r) + " |" for r in rows])
-
-
-def _arm_row(name: str, access: str, label: str, s: dict[str, Any], status: str) -> list[str]:
-    cost = s["cost_usd_per_1000"]
-    return [
-        name,
-        access,
-        f"{label} (n={s['n_questions']})",
-        _c(s["em"]),
-        _c(s["f1"]),
-        f"{s['abstain_precision'][0]:.3f} / {s['abstain_recall'][0]:.3f}",
-        _c(s["citation_precision"]),
-        _c(s["citation_recall"]),
-        _c(s["faithfulness_mean"]),
-        f"{s['invalid_rate']:.3f}",
-        "-" if s["latency_p50_s"] is None else f"{s['latency_p50_s']:.2f} s",
-        "-" if cost is None else f"${cost:.2f}",
-        status,
-    ]
-
-
-def llm_tables(result: dict[str, Any]) -> str:
-    """The arm table, the paired differences and the notes, as Markdown (run log and README block)."""
-    meta = result["meta"]
-    status = f"Verified (run {meta['date']}, seed {meta['seed']})"
-    access = {a["name"]: ACCESS.get(a["provider"], a["provider"]) for a in meta["arms"]}
-    rows = [
-        _arm_row(BASELINE, "local, CPU", "sample", result["baseline"]["sample"], status),
-        _arm_row(BASELINE, "local, CPU", "all test questions", result["baseline"]["all"], status),
-    ]
-    for name, entry in result["arms"].items():
-        rows.append(_arm_row(name, access[name], "sample", entry["sample"], status))
-        if "all" in entry:
-            rows.append(_arm_row(name, access[name], "all test questions", entry["all"], status))
-    header = [
-        "Arm", "Access", "Questions", "Exact match", "F1", "Abstention precision / recall",
-        "Citation precision", "Citation recall", "Faithfulness (0 to 2)", "Invalid", "p50 latency",
-        "Cost per 1,000 (API-equivalent)", "Status",
-    ]  # fmt: skip
-    deltas = [[name, _c(d["f1"]), _c(d["em"])] for name, d in result["paired"].items()]
-    r = meta["retriever"]
-    judge = meta.get("judge")
-    if judge is None:
-        caveat = "No faithfulness judge was run."
-    else:
-        calibration = ""
-        if "kappa" in judge:
-            calibration = (
-                f" ({judge['task']}; weighted kappa {judge['kappa']}, 95% CI {judge['kappa_ci'][0]} to "
-                f"{judge['kappa_ci'][1]}; {judge['source']})"
-            )
-        caveat = (
-            f"Faithfulness is judged by {judge['model']} on answered questions (0 unsupported, 1 partly, "
-            "2 fully supported by the cited passages). This judge was not calibrated for this rubric: its "
-            f"calibration measured {judge.get('calibrated_on', 'something else')}{calibration}. "
-            "Treat the faithfulness column as a rough check, not a validated measurement."
-        )
-    return (
-        _table(header, rows)
-        + "\n\n**Paired difference from the extractive baseline** on the same sample questions (mean [95% CI] of "
-        "arm minus baseline, paired bootstrap):\n\n"
-        + _table(["Arm", "F1 difference", "Exact match difference"], deltas)
-        + "\n\n"
-        + f"Passages: the top {meta['k']} from {r['method']} over {r['strategy']} chunks of {r['size']} words "
-        f"({r['embedder'].split('/')[-1]}). Prompt hash `{meta['prompt_sha256'][:12]}`. The sample is "
-        f"{meta['sample']['n']} questions, stratified by answerable or unanswerable, seed {meta['sample']['seed']}. "
-        "Hosted arms run through the vendors' command line tools, so they measure the model plus each tool's own "
-        "system prompt, and their latency includes the tool's start-up. Cost is the API-equivalent price of the "
-        "tokens used, not money paid. Invalid answers (no valid cited answer after one retry) count as wrong. "
-        + caveat
-    )
-
-
-def llm_markdown(result: dict[str, Any]) -> str:
-    """The human-readable run log written next to the JSON."""
-    meta, ea = result["meta"], result["error_analysis"]
-    lines = [
-        "# LLM answers with citations",
-        "",
-        f"- Date: {meta['date']}, seed {meta['seed']}, k {meta['k']}, prompt hash `{meta['prompt_sha256']}`",
-        f"- Hardware: {meta['hardware']}",
-        f"- Wall time: {meta['wall_seconds']} s; test questions {meta['n_test_questions']}, "
-        f"sample {meta['sample']['n']}",
-        "",
-        "## Arms",
-        "",
-        llm_tables(result),
-        "",
-        f"## Error analysis ({ea['arm']})",
-        "",
-        _table(
-            ["category", "count", "description"],
-            [[c, str(ea["counts"][c]), ea["descriptions"][c]] for c in CATEGORIES],
-        ),
-        "",
-    ]
-    for e in ea["examples"]:
-        lines.append(
-            f"- `{e['id']}` {e['category']}: {e['question']} | gold {e['gold']} | model {e['prediction']!r} | "
-            f"cited {e['citations']}"
-        )
-    return "\n".join(lines) + "\n"
 
 
 HOSTED_ARMS = {

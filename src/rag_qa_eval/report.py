@@ -252,7 +252,7 @@ def render_blocks(
         "latency": _latency(latency),
     }
     if llm is not None:
-        from .eval_llm import llm_tables  # needs the optional `llm` extra
+        from .llm_report import llm_tables
 
         blocks["llm"] = llm_tables(llm)
     return blocks
@@ -284,6 +284,6 @@ def write_report(runs_dir: Path, readme: Path, results: Path) -> None:
 
 
 def _llm_results(llm: dict[str, Any]) -> str:
-    from .eval_llm import llm_markdown  # needs the optional `llm` extra
+    from .llm_report import llm_markdown
 
     return "\n" + llm_markdown(llm).replace("# ", "## ", 1)

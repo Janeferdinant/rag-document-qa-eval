@@ -116,12 +116,51 @@ def test_faithfulness_is_judged_on_answered_questions_with_a_caveat(result: dict
     assert judge["kappa"] == pytest.approx(0.835)
 
 
-def test_error_analysis_counts_categories_and_gives_examples(
+def test_error_analysis_covers_every_full_arm_with_llm_categories(
     result: dict[str, Any], world: dict[str, Any]
 ) -> None:
+    from rag_qa_eval.eval_llm import CATEGORIES
+
     ea = result["error_analysis"]
-    assert sum(ea["counts"].values()) == n_test(world) and "missed_abstention" in ea["counts"]
-    assert all(len(e["id"]) == 8 for e in ea["examples"])
+    assert set(ea["arms"]) == {"fake-local"}  # only arms that ran on every test question
+    arm = ea["arms"]["fake-local"]
+    assert sum(arm["counts"].values()) == n_test(world) and "missed_abstention" in arm["counts"]
+    assert set(arm["counts"]) == set(CATEGORIES) and set(ea["descriptions"]) == set(CATEGORIES)
+    seen = {e["category"] for e in arm["examples"]}
+    assert seen == {
+        c for c, n in arm["counts"].items() if n > 0
+    }  # an example for every category that occurred
+    assert all(len(e["id"]) == 8 and e["question"] for e in arm["examples"])
+
+
+def test_paired_differences_are_also_given_on_all_questions_for_arms_that_ran_on_all(
+    result: dict[str, Any],
+) -> None:
+    assert set(result["paired_all"]) == {"fake-local"}
+    for key in ("f1", "em"):
+        mean, lo, hi = result["paired_all"]["fake-local"][key]
+        assert lo <= mean <= hi
+
+
+def _row(answerable: bool, abstained: bool, precision: float | None, recall: float | None) -> dict[str, Any]:
+    return {
+        "qid": "x", "answerable": answerable, "valid": True, "abstained": abstained, "em": 0.0, "f1": 0.0,
+        "latency_s": 0.1, "tokens_in": 1, "tokens_out": 1, "cost_usd": 0.0, "citation_precision": precision,
+        "citation_recall": recall, "supported": None, "faithfulness": None,
+    }  # fmt: skip
+
+
+def test_citation_precision_and_recall_are_over_answerable_questions_only() -> None:
+    from rag_qa_eval.eval_llm import summarise_rows
+
+    rows = [
+        _row(True, False, 1.0, 1.0),
+        _row(True, False, 0.0, 0.0),
+        _row(False, False, 0.0, None),  # an answered unanswerable question: no gold span exists to cite
+        _row(False, False, 0.0, None),
+    ]
+    out = summarise_rows(rows, 50, 0)
+    assert out["citation_precision"][0] == 0.5 and out["citation_recall"][0] == 0.5
 
 
 def test_parse_arms_maps_names_to_providers_and_samples() -> None:

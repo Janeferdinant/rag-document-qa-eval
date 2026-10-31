@@ -61,11 +61,13 @@ def anonymise_id(qid: str) -> str:
     return hashlib.sha256(qid.encode()).hexdigest()[:8]
 
 
-def pick_examples(rows: Sequence[dict[str, Any]], per_category: int, seed: int) -> list[dict[str, Any]]:
-    """Seeded pick of up to `per_category` rows from each category (order: CATEGORIES)."""
+def pick_examples(
+    rows: Sequence[dict[str, Any]], per_category: int, seed: int, categories: Sequence[str] = CATEGORIES
+) -> list[dict[str, Any]]:
+    """Seeded pick of up to `per_category` rows from each category (in the order of `categories`)."""
     rng = random.Random(seed)
     out: list[dict[str, Any]] = []
-    for cat in CATEGORIES:
+    for cat in categories:
         pool = sorted((r for r in rows if r["category"] == cat), key=lambda r: r["qid"])
         out.extend(rng.sample(pool, min(per_category, len(pool))))
     return out

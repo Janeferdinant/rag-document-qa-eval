@@ -119,7 +119,7 @@ function llmBlock(llm) {
   if (!llm.valid) {
     sec.append(el('p', { class: 'llm-answer none', text: 'The model gave no valid cited answer, even after one retry. The evaluation counts this as wrong.' }))
   } else if (llm.abstained) {
-    sec.append(el('p', { class: 'llm-answer none', text: 'No answer: the model abstained because the passages do not answer this question.' }))
+    sec.append(el('p', { class: 'llm-answer none', text: 'No answer: the model abstained. The evaluation checks whether a passage held the answer; this page does not.' }))
   } else {
     const p = el('p', { class: 'llm-answer' }, llm.answer)
     for (const n of llm.citations) p.append(' ', el('span', { class: 'llm-cite', text: `[${n}]` }))

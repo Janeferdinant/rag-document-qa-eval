@@ -20,3 +20,15 @@ jobs:
       - run: python -m ruff format --check .
       - run: python -m mypy
       - run: python -m pytest -q
+
+  base-install:
+    # The llm and tracing extras are optional: the base install must report and pass its own tests without them.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: python -m pip install -r requirements.txt -r requirements-dev.txt -e .
+      - run: python -m pytest -q

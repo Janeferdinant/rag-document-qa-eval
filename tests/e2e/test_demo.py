@@ -301,3 +301,32 @@ def test_example_with_a_precomputed_llm_answer_shows_it_with_citations_and_passa
         assert_clean(s)
     finally:
         s.close()
+
+
+def test_a_precomputed_llm_abstention_does_not_claim_why_the_model_abstained(
+    browser, base_url, examples
+) -> None:
+    """The model may abstain although a passage holds the answer (over-abstention), so the page must not say the
+    passages do not answer the question."""
+    llm = {
+        "model": "fake-model",
+        "answer": "",
+        "citations": [],
+        "abstained": True,
+        "valid": True,
+        "passages": [{"rank": 1, "title": "Title_1", "text": "the answer is here"}],
+    }
+    patched = json.loads(json.dumps(examples))
+    patched["examples"][0]["llm"] = llm
+    s = Session(browser, 1280, base_url)
+    s.page.route(
+        "**/data/examples.json",
+        lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(patched)),
+    )
+    s.open()
+    try:
+        s.page.locator(".chip").nth(0).click()
+        text = s.page.locator("#llm-answer").inner_text()
+        assert "abstained" in text and "do not answer" not in text and "because" not in text
+    finally:
+        s.close()
