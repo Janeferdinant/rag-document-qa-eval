@@ -54,3 +54,12 @@ def test_invalid_answers_are_marked_in_the_trace() -> None:
     record_answer(tracer, "q?", bad)
     (span,) = exporter.get_finished_spans()
     assert (span.attributes or {})["rag.answer.valid"] is False and not span.status.is_ok
+
+
+def test_span_duration_matches_the_models_latency() -> None:
+    exporter = InMemorySpanExporter()
+    tracer = setup_tracing({"RAG_TRACING": "1"}, exporter=exporter)
+    record_answer(tracer, "Who founded Rome?", result())  # the completion took 0.4 s
+    (span,) = exporter.get_finished_spans()
+    assert span.start_time is not None and span.end_time is not None
+    assert (span.end_time - span.start_time) / 1e9 == pytest.approx(0.4, abs=0.01)

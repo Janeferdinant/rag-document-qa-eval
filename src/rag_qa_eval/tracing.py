@@ -7,6 +7,7 @@ endpoint (default `http://localhost:6006/v1/traces`, where a local `phoenix serv
 from __future__ import annotations
 
 import os
+import time
 from collections.abc import Mapping
 from typing import Any
 
@@ -42,7 +43,11 @@ def record_answer(tracer: Any | None, question: str, result: AnswerResult) -> No
     tokens_in = sum(c.input_tokens for c in result.completions)
     tokens_out = sum(c.output_tokens for c in result.completions)
     costs = [c.cost_usd for c in result.completions]
-    with tracer.start_as_current_span("answer_question") as span:
+    # the answer was produced just before this call: back-date the span by the time the model took
+    end_ns = time.time_ns()
+    start_ns = end_ns - round(sum(c.latency_s for c in result.completions) * 1e9)
+    span = tracer.start_span("answer_question", start_time=start_ns)
+    try:
         span.set_attribute("openinference.span.kind", "LLM")
         span.set_attribute("input.value", question)
         span.set_attribute("output.value", result.answer or "")
@@ -58,3 +63,5 @@ def record_answer(tracer: Any | None, question: str, result: AnswerResult) -> No
         span.set_attribute("rag.answer.citations", [str(n) for n in result.citations])
         if not result.valid:
             span.set_status(Status(StatusCode.ERROR, result.invalid_reason or "invalid answer"))
+    finally:
+        span.end(end_time=end_ns)
