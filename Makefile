@@ -1,6 +1,6 @@
 PY ?= python
 
-.PHONY: install install-dev data retrieval reader latency evaluate report demo-data smoke test lint typecheck e2e serve all
+.PHONY: install install-dev data retrieval reader latency llm evaluate report demo-data smoke test lint typecheck e2e serve all
 
 install:
 	$(PY) -m pip install -r requirements.txt -e .
@@ -21,6 +21,10 @@ reader:
 
 latency:
 	$(PY) -m rag_qa_eval.cli evaluate --stage latency
+
+# Optional: LLM answers with citations (needs `pip install ".[llm]"` and Ollama; the hosted arms are separate runs)
+llm:
+	$(PY) -m rag_qa_eval.cli evaluate --stage llm --arms qwen3:4b qwen3:8b
 
 evaluate: retrieval reader latency
 
