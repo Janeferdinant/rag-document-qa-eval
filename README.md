@@ -198,11 +198,11 @@ Numbers below are quoted from the tables above and from `docs/runs/2026-10-15-*.
 
 ## Tech stack
 
-Python 3.10, PyTorch (CPU), Hugging Face `transformers` and `sentence-transformers`, NumPy; pytest, ruff, mypy; Playwright for the page checks; plain HTML, CSS and ES modules for the demo (no build step).
+Python 3.11, PyTorch (CPU), Hugging Face `transformers` and `sentence-transformers`, NumPy; pytest, ruff, mypy; Playwright for the page checks; plain HTML, CSS and ES modules for the demo (no build step).
 
 ## Getting started
 
-Prerequisites: Python 3.10 or newer, about 2 GB of disk for the models and caches, no GPU needed.
+Prerequisites: Python 3.11 or newer, about 2 GB of disk for the models and caches, no GPU needed.
 
 ```bash
 git clone https://github.com/Janeferdinant/rag-document-qa-eval.git

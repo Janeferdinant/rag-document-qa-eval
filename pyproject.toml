@@ -7,7 +7,7 @@ name = "rag-document-qa-eval"
 version = "0.1.0"
 description = "Retrieval-augmented document question answering with a rigorous evaluation (SQuAD 2.0, CPU only)."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = { text = "CC-BY-SA-4.0" }
 dependencies = [
   "numpy>=1.26",
@@ -19,6 +19,10 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.5", "mypy>=1.10"]
 e2e = ["playwright>=1.45"]
+# LLM answers with citations: the evaluation harness provides the model clients, caching and statistics.
+llm = ["llm-eval-harness @ git+https://github.com/Janeferdinant/llm-eval-harness@v0.1.0"]
+# Optional OpenTelemetry tracing of the LLM answer step (see docs/llm-answers.md).
+tracing = ["opentelemetry-sdk>=1.25", "openinference-semantic-conventions>=0.1.9"]
 
 [project.scripts]
 rag-qa = "rag_qa_eval.cli:main"
@@ -28,7 +32,7 @@ where = ["src"]
 
 [tool.ruff]
 line-length = 110
-target-version = "py310"
+target-version = "py311"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
@@ -36,7 +40,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 ignore = ["E501"]  # the formatter wraps code; long prose strings are fine
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 strict = false
 warn_unused_ignores = true
 disallow_untyped_defs = true

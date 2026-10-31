@@ -55,6 +55,9 @@ MIT: <https://opensource.org/license/mit>.
 | ruff | MIT |
 | mypy | MIT |
 | playwright (browser checks only) | Apache-2.0 |
+| llm-eval-harness (optional `llm` extra, installed from GitHub, tag v0.1.0) | CC BY-NC-ND 4.0 (author's own work, used as an installed dependency; no code is copied into this repository) |
+| openai, anthropic, google-genai (installed by llm-eval-harness; the pay-per-token clients are never called by this repository) | Apache-2.0 |
+| opentelemetry-sdk, openinference-semantic-conventions (optional `tracing` extra) | Apache-2.0 |
 
 ## Methods implemented from the literature (no third-party code copied)
 
