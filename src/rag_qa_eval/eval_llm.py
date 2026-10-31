@@ -22,6 +22,7 @@ from evalharness.metrics import Output, rubric_judge
 from evalharness.stats import paired_bootstrap_delta
 
 from .analysis import anonymise_id, pick_examples
+from .chunking import Chunk
 from .data import Question, gold_spans
 from .eval_retrieval import make_retriever
 from .evalcommon import (
@@ -38,7 +39,7 @@ from .llm_answers import SYSTEM_PROMPT, AnswerResult, generate_answer
 from .llm_metrics import citation_precision, citation_recall
 from .metrics import bootstrap_ci, bootstrap_ratio_ci
 from .qa_metrics import answer_in_context, score_prediction, supported_by_chunk
-from .retrieval import chunk_contains_span
+from .retrieval import Retriever, chunk_contains_span
 from .tracing import record_answer
 
 K = 5
@@ -246,6 +247,28 @@ def _baseline_rows(
     return rows
 
 
+def llm_retriever(
+    prep: Prepared, settings: Settings, comps: Components, cache_dir: Path, retrieval_result: dict[str, Any]
+) -> tuple[list[Chunk], Retriever, str, str, int]:
+    """The chunks and retriever the `llm` stage uses (the retrieval run's selected configuration), plus the
+    method, chunking strategy and chunk size. The browser demo's export calls this too, so its prompts match."""
+    sel = retrieval_result["selected"]
+    strategy, size, method = sel["strategy"], sel["size"], sel["method"]
+    embedder = sel["embedder"] or settings.embedders[0]
+    chunks = chunk_corpus(prep.docs, strategy, size)
+    retriever = make_retriever(comps, chunks, embedder, method == "hybrid+rerank", cache_dir, settings.depth)
+    return chunks, retriever, method, strategy, size
+
+
+def arm_client(arm: ArmSpec, cache_dir: Path) -> LLMClient:
+    """The arm's model client behind the response cache that makes the stage resumable (needs the llm extra)."""
+    from evalharness.llm.base import get_client
+    from evalharness.llm.cache import CachingClient
+
+    folder = cache_dir / "llm" / arm.name.replace(":", "-")
+    return CachingClient(get_client(arm.provider), folder, salt=f"{arm.provider}:{arm.model}")
+
+
 def run_llm(
     prep: Prepared,
     settings: Settings,
@@ -264,12 +287,11 @@ def run_llm(
     """Run every arm. A `UsageLimitError` from a client stops the run and is re-raised: finished answers are in the
     client's response cache (wrap clients in `CachingClient`), so a rerun makes only the missing calls."""
     t_start = time.perf_counter()
+    chunks, retriever, method, strategy, size = llm_retriever(
+        prep, settings, comps, cache_dir, retrieval_result
+    )
     sel = retrieval_result["selected"]
-    strategy, size = sel["strategy"], sel["size"]
     embedder = sel["embedder"] or settings.embedders[0]
-    method = sel["method"]
-    chunks = chunk_corpus(prep.docs, strategy, size)
-    retriever = make_retriever(comps, chunks, embedder, method == "hybrid+rerank", cache_dir, settings.depth)
     test = prep.sample("test", settings.n_test_questions, settings.seed, False)
     sample = stratified_sample(test, sample_n, SAMPLE_SEED)
     sample_ids = {q.qid for q in sample}

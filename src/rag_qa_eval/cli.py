@@ -107,7 +107,7 @@ def _llm_stage(
         from evalharness.llm.base import UsageLimitError, get_client
         from evalharness.llm.cache import CachingClient
 
-        from .eval_llm import ArmSpec, llm_markdown, parse_arms, run_llm
+        from .eval_llm import ArmSpec, arm_client, llm_markdown, parse_arms, run_llm
         from .tracing import setup_tracing
     except ImportError:
         _log('the llm stage needs the optional dependency: pip install ".[llm]"')
@@ -118,8 +118,7 @@ def _llm_stage(
         return 2
 
     def factory(arm: ArmSpec) -> Any:
-        folder = cache_dir / "llm" / arm.name.replace(":", "-")
-        return CachingClient(get_client(arm.provider), folder, salt=f"{arm.provider}:{arm.model}")
+        return arm_client(arm, cache_dir)
 
     judge = None
     if args.judge != "none":
@@ -220,7 +219,7 @@ def cmd_report(args: argparse.Namespace) -> int:
 def cmd_export_demo(args: argparse.Namespace) -> int:
     from .demo_export import export_demo
 
-    export_demo(args.data_dir, args.runs, args.out)
+    export_demo(args.data_dir, args.runs, args.out, args.llm_arm)
     _log(f"wrote demo data to {args.out}")
     return 0
 
@@ -273,6 +272,9 @@ def build_parser() -> argparse.ArgumentParser:
     d.add_argument("--data-dir", type=Path, default=DEFAULT_DATA)
     d.add_argument("--runs", type=Path, default=DEFAULT_RUNS)
     d.add_argument("--out", type=Path, default=Path("docs/data"))
+    d.add_argument(
+        "--llm-arm", help='also precompute LLM answers for the examples with this local arm, e.g. "qwen3:8b"'
+    )
     d.set_defaults(fn=cmd_export_demo)
     return p
 
