@@ -276,6 +276,8 @@ def test_example_with_a_precomputed_llm_answer_shows_it_with_citations_and_passa
         "passages": [{"rank": i, "title": f"Title_{i}", "text": f"passage text {i}"} for i in range(1, 6)],
     }
     patched = json.loads(json.dumps(examples))
+    for other in patched["examples"]:
+        other.pop("llm", None)  # the committed data may carry real blocks; this test controls its own
     patched["examples"][0]["llm"] = llm
     patched["meta"]["llm"] = {"arm": "fake", "model": "fake-model", "passages": 5, "run_date": "2026-10-31"}
     s = Session(browser, width, base_url)
@@ -288,8 +290,8 @@ def test_example_with_a_precomputed_llm_answer_shows_it_with_citations_and_passa
         s.page.locator(".chip").nth(0).click()
         block = s.page.locator("#llm-answer")
         assert "fake-model" in block.inner_text() and "Precomputed" in block.inner_text()
-        assert "Zed" in block.locator(".answer").inner_text()
-        assert block.locator(".cite").inner_text() == "[2]"
+        assert "Zed" in block.locator(".llm-answer").inner_text()
+        assert block.locator(".llm-cite").inner_text() == "[2]"
         assert block.locator(".llm-passage").count() == 5 and block.locator(".llm-passage.cited").count() == 1
         assert s.page.locator(".passage").count() == len(examples["examples"][0]["retrieved"])  # unchanged
         assert no_horizontal_scroll(s)

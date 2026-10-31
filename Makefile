@@ -33,8 +33,9 @@ report:
 	$(PY) -m rag_qa_eval.cli report
 
 # Regenerate the browser demo's sample corpus, BM25 index and precomputed examples
+# LLM_ARM=qwen3:4b also precomputes that local arm's answers for the examples (needs the llm extra and Ollama)
 demo-data:
-	$(PY) -m rag_qa_eval.cli export-demo
+	$(PY) -m rag_qa_eval.cli export-demo $(if $(LLM_ARM),--llm-arm $(LLM_ARM))
 
 # Tiny settings that exercise every stage in a few minutes; logs go to .tmp/smoke-runs
 smoke:

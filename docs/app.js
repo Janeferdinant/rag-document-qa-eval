@@ -114,15 +114,15 @@ function renderResult({ question, tag, live, answer, citedRank, chunks, notes = 
 
 function llmBlock(llm) {
   const sec = el('section', { class: 'llm', id: 'llm-answer' })
-  sec.append(el('h3', {}, 'LLM answer ', el('span', { class: 'tag', text: 'Precomputed, not a live model' })))
+  sec.append(el('h3', {}, 'LLM answer ', el('span', { class: 'llm-tag', text: 'Precomputed, not a live model' })))
   sec.append(el('p', { class: 'meta', text: `${llm.model}, run locally on the top ${llm.passages.length} passages of the evaluation. Citations are passage numbers checked by the evaluation code.` }))
   if (!llm.valid) {
-    sec.append(el('p', { class: 'answer none', text: 'The model gave no valid cited answer, even after one retry. The evaluation counts this as wrong.' }))
+    sec.append(el('p', { class: 'llm-answer none', text: 'The model gave no valid cited answer, even after one retry. The evaluation counts this as wrong.' }))
   } else if (llm.abstained) {
-    sec.append(el('p', { class: 'answer none', text: 'No answer: the model abstained because the passages do not answer this question.' }))
+    sec.append(el('p', { class: 'llm-answer none', text: 'No answer: the model abstained because the passages do not answer this question.' }))
   } else {
-    const p = el('p', { class: 'answer' }, llm.answer)
-    for (const n of llm.citations) p.append(' ', el('span', { class: 'cite', text: `[${n}]` }))
+    const p = el('p', { class: 'llm-answer' }, llm.answer)
+    for (const n of llm.citations) p.append(' ', el('span', { class: 'llm-cite', text: `[${n}]` }))
     sec.append(p)
   }
   const details = el('details', { class: 'llm-passages' }, el('summary', { text: `Passages the model saw (top ${llm.passages.length})` }))

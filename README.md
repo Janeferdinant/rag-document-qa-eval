@@ -183,6 +183,28 @@ Examples (SQuAD 2.0 questions, ids hashed; text from Wikipedia via SQuAD, CC BY-
 | hybrid+rerank | 430.6 / 538.9 | 60.2 / 80.1 | 493.5 / 610.7 |
 <!-- BLOCK:latency:END -->
 
+### LLM answers with citations
+
+<!-- BLOCK:llm:START -->
+| Arm | Access | Questions | Exact match | F1 | Abstention precision / recall | Citation precision | Citation recall | Faithfulness (0 to 2) | Invalid | p50 latency | Cost per 1,000 (API-equivalent) | Status |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| extractive-baseline | local, CPU | sample (n=100) | 0.710 [0.620, 0.800] | 0.730 [0.643, 0.813] | 0.760 / 0.775 | 0.720 [0.600, 0.840] | n/a | n/a | 0.000 | - | $0.00 | Verified (run 2026-10-30, seed 13) |
+| extractive-baseline | local, CPU | all test questions (n=800) | 0.704 [0.672, 0.734] | 0.732 [0.702, 0.761] | 0.771 / 0.797 | 0.723 [0.677, 0.768] | n/a | n/a | 0.000 | - | $0.00 | Verified (run 2026-10-30, seed 13) |
+| qwen3:4b | local (Ollama) | sample (n=100) | 0.690 [0.590, 0.770] | 0.699 [0.604, 0.782] | 0.689 / 0.857 | 0.710 [0.564, 0.839] | 0.938 [0.844, 1.000] | 1.897 [1.744, 2.000] | 0.000 | 0.46 s | $0.00 | Verified (run 2026-10-30, seed 13) |
+| qwen3:4b | local (Ollama) | all test questions (n=800) | 0.606 [0.571, 0.639] | 0.640 [0.606, 0.671] | 0.664 / 0.769 | 0.658 [0.610, 0.705] | 0.968 [0.946, 0.988] | 1.904 [1.863, 1.942] | 0.000 | 0.46 s | $0.00 | Verified (run 2026-10-30, seed 13) |
+| qwen3:8b | local (Ollama) | sample (n=100) | 0.390 [0.300, 0.490] | 0.452 [0.362, 0.548] | 1.000 / 0.061 | 0.452 [0.354, 0.545] | 0.980 [0.939, 1.000] | 1.680 [1.567, 1.794] | 0.000 | 0.56 s | $0.00 | Verified (run 2026-10-30, seed 13) |
+| qwen3:8b | local (Ollama) | all test questions (n=800) | 0.347 [0.314, 0.381] | 0.420 [0.388, 0.452] | 0.852 / 0.058 | 0.453 [0.419, 0.486] | 0.964 [0.946, 0.980] | 1.748 [1.710, 1.786] | 0.000 | 0.56 s | $0.00 | Verified (run 2026-10-30, seed 13) |
+
+**Paired difference from the extractive baseline** on the same sample questions (mean [95% CI] of arm minus baseline, paired bootstrap):
+
+| Arm | F1 difference | Exact match difference |
+|---|---|---|
+| qwen3:4b | -0.031 [-0.127, 0.061] | -0.020 [-0.120, 0.070] |
+| qwen3:8b | -0.278 [-0.402, -0.157] | -0.320 [-0.440, -0.200] |
+
+Passages: the top 5 from hybrid+rerank over sentence chunks of 160 words (all-MiniLM-L6-v2). Prompt hash `533d7560473c`. The sample is 100 questions, stratified by answerable or unanswerable, seed 0. Hosted arms run through the vendors' command line tools, so they measure the model plus each tool's own system prompt, and their latency includes the tool's start-up. Cost is the API-equivalent price of the tokens used, not money paid. Invalid answers (no valid cited answer after one retry) count as wrong. Faithfulness is judged by qwen3:8b on answered questions (0 unsupported, 1 partly, 2 fully supported by the cited passages). This judge was not calibrated for this rubric: its calibration measured answer correctness (100 SQuAD 2.0 answers graded against gold answers, labelled by the author; weighted kappa 0.835, 95% CI 0.682 to 0.945; llm-eval-harness v0.1.0 README). Treat the faithfulness column as a rough check, not a validated measurement.
+<!-- BLOCK:llm:END -->
+
 ### Reading the results
 
 Numbers below are quoted from the tables above and from `docs/runs/2026-10-15-*.json`.

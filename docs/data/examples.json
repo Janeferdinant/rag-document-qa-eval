@@ -2,7 +2,13 @@
  "meta": {
   "date": "2026-10-15",
   "pipeline": "extractive reader deepset/minilm-uncased-squad2, hybrid+rerank retrieval with all-MiniLM-L6-v2, sentence chunks of 160 words, top 1 passages, abstention margin threshold 3.209",
-  "selection_rule": "seeded pick per outcome category among test questions from the sample articles"
+  "selection_rule": "seeded pick per outcome category among test questions from the sample articles",
+  "llm": {
+   "arm": "qwen3:4b",
+   "model": "qwen3:4b",
+   "passages": 5,
+   "run_date": "2026-10-30"
+  }
  },
  "examples": [
   {
@@ -21,7 +27,43 @@
      "title": "Steam_engine",
      "text": "The efficiency of Energiprojekt's steam engine reaches some 27-30% on high-pressure engines. It is a single-step, 5-cylinder engine (no compound) with superheated steam and consumes approx. 4 kg (8.8 lb) of steam per kWh.[not in citation given]\n\nWhere CHP is not used, steam turbines in power stations use surface condensers as a cold sink. The condensers are cooled by water flow from oceans, rivers, lakes, and often by cooling towers which evaporate water to provide cooling energy removal. The resulting condensed hot water output from the condenser is then put back into the boiler via a pump. A dry type cooling tower is similar to an automobile radiator and is used in locations where water is costly. Evaporative (wet) cooling towers use the rejected heat to evaporate water; this water is kept separate from the condensate, which circulates in a closed system and returns to the boiler."
     }
-   ]
+   ],
+   "llm": {
+    "model": "qwen3:4b",
+    "answer": "surface condensers",
+    "citations": [
+     1
+    ],
+    "abstained": false,
+    "valid": true,
+    "passages": [
+     {
+      "rank": 1,
+      "title": "Steam_engine",
+      "text": "The efficiency of Energiprojekt's steam engine reaches some 27-30% on high-pressure engines. It is a single-step, 5-cylinder engine (no compound) with superheated steam and consumes approx. 4 kg (8.8 lb) of steam per kWh.[not in citation given]\n\nWhere CHP is not used, steam turbines in power stations use surface condensers as a cold sink. The condensers are cooled by water flow from oceans, rivers, lakes, and often by cooling towers which evaporate water to provide cooling energy removal. The resulting condensed hot water output from the condenser is then put back into the boiler via a pump. A dry type cooling tower is similar to an automobile radiator and is used in locations where water is costly. Evaporative (wet) cooling towers use the rejected heat to evaporate water; this water is kept separate from the condensate, which circulates in a closed system and returns to the boiler."
+     },
+     {
+      "rank": 2,
+      "title": "Steam_engine",
+      "text": "Without the pressure reaching supercritical levels for the working fluid, the temperature range the cycle can operate over is quite small; in steam turbines, turbine entry temperatures are typically 565 °C (the creep limit of stainless steel) and condenser temperatures are around 30 °C. This gives a theoretical Carnot efficiency of about 63% compared with an actual efficiency of 42% for a modern coal-fired power station. This low turbine entry temperature (compared with a gas turbine) is why the Rankine cycle is often used as a bottoming cycle in combined-cycle gas turbine power stations.[citation needed]\n\nSteam engines can be said to have been the moving force behind the Industrial Revolution and saw widespread commercial use driving machinery in factories, mills and mines; powering pumping stations; and propelling transport appliances such as railway locomotives, ships, steamboats and road vehicles. Their use in agriculture led to an increase in the land available for cultivation."
+     },
+     {
+      "rank": 3,
+      "title": "Steam_engine",
+      "text": "The main use for steam turbines is in electricity generation (in the 1990s about 90% of the world's electric production was by use of steam turbines) however the recent widespread application of large gas turbine units and typical combined cycle power plants has resulted in reduction of this percentage to the 80% regime for steam turbines. In electricity production, the high speed of turbine rotation matches well with the speed of modern electric generators, which are typically direct connected to their driving turbines. In marine service, (pioneered on the Turbinia), steam turbines with reduction gearing (although the Turbinia has direct turbines to propellers with no reduction gearbox) dominated large ship propulsion throughout the late 20th century, being more efficient (and requiring far less maintenance) than reciprocating steam engines. In recent decades, reciprocating Diesel engines, and gas turbines, have almost entirely supplanted steam propulsion for marine applications.\n\nThe Rankine cycle is the fundamental thermodynamic underpinning of the steam engine."
+     },
+     {
+      "rank": 4,
+      "title": "Steam_engine",
+      "text": "Steam engines remained the dominant source of power until the early 20th century, when advances in the design of electric motors and internal combustion engines gradually resulted in the replacement of reciprocating (piston) steam engines, with shipping in the 20th-century relying upon the steam turbine.\n\nThe final major evolution of the steam engine design was the use of steam turbines starting in the late part of the 19th century. Steam turbines are generally more efficient than reciprocating piston type steam engines (for outputs above several hundred horsepower), have fewer moving parts, and provide rotary power directly instead of through a connecting rod system or similar means. Steam turbines virtually replaced reciprocating engines in electricity generating stations early in the 20th century, where their efficiency, higher speed appropriate to generator service, and smooth rotation were advantages. Today most electric power is provided by steam turbines."
+     },
+     {
+      "rank": 5,
+      "title": "Steam_engine",
+      "text": "In the United States 90% of the electric power is produced in this way using a variety of heat sources. Steam turbines were extensively applied for propulsion of large ships throughout most of the 20th century.\n\nThe heat required for boiling the water and supplying the steam can be derived from various sources, most commonly from burning combustible materials with an appropriate supply of air in a closed space (called variously combustion chamber, firebox). In some cases the heat source is a nuclear reactor, geothermal energy, solar energy or waste heat from an internal combustion engine or industrial process. In the case of model or toy steam engines, the heat source can be an electric heating element.\n\nThe most useful instrument for analyzing the performance of steam engines is the steam engine indicator."
+     }
+    ]
+   }
   },
   {
    "id": "a83ca5e0",
@@ -39,7 +81,41 @@
      "title": "Steam_engine",
      "text": "Therefore, a reversing stage or gearbox is usually required where power is required in the opposite direction.[citation needed]\n\nThe weight of boilers and condensers generally makes the power-to-weight ratio of a steam plant lower than for internal combustion engines. For mobile applications steam has been largely superseded by internal combustion engines or electric motors. However, most electric power is generated using steam turbine plant, so that indirectly the world's industry is still dependent on steam power. Recent concerns about fuel sources and pollution have incited a renewed interest in steam both as a component of cogeneration processes and as a prime mover. This is becoming known as the Advanced Steam movement.[citation needed]\n\nIt is possible to use a mechanism based on a pistonless rotary engine such as the Wankel engine in place of the cylinders and valve gear of a conventional reciprocating steam engine."
     }
-   ]
+   ],
+   "llm": {
+    "model": "qwen3:4b",
+    "answer": "",
+    "citations": [],
+    "abstained": true,
+    "valid": true,
+    "passages": [
+     {
+      "rank": 1,
+      "title": "Steam_engine",
+      "text": "Therefore, a reversing stage or gearbox is usually required where power is required in the opposite direction.[citation needed]\n\nThe weight of boilers and condensers generally makes the power-to-weight ratio of a steam plant lower than for internal combustion engines. For mobile applications steam has been largely superseded by internal combustion engines or electric motors. However, most electric power is generated using steam turbine plant, so that indirectly the world's industry is still dependent on steam power. Recent concerns about fuel sources and pollution have incited a renewed interest in steam both as a component of cogeneration processes and as a prime mover. This is becoming known as the Advanced Steam movement.[citation needed]\n\nIt is possible to use a mechanism based on a pistonless rotary engine such as the Wankel engine in place of the cylinders and valve gear of a conventional reciprocating steam engine."
+     },
+     {
+      "rank": 2,
+      "title": "Steam_engine",
+      "text": "Steam engines remained the dominant source of power until the early 20th century, when advances in the design of electric motors and internal combustion engines gradually resulted in the replacement of reciprocating (piston) steam engines, with shipping in the 20th-century relying upon the steam turbine.\n\nThe final major evolution of the steam engine design was the use of steam turbines starting in the late part of the 19th century. Steam turbines are generally more efficient than reciprocating piston type steam engines (for outputs above several hundred horsepower), have fewer moving parts, and provide rotary power directly instead of through a connecting rod system or similar means. Steam turbines virtually replaced reciprocating engines in electricity generating stations early in the 20th century, where their efficiency, higher speed appropriate to generator service, and smooth rotation were advantages. Today most electric power is provided by steam turbines."
+     },
+     {
+      "rank": 3,
+      "title": "Steam_engine",
+      "text": "In the United States 90% of the electric power is produced in this way using a variety of heat sources. Steam turbines were extensively applied for propulsion of large ships throughout most of the 20th century.\n\nThe heat required for boiling the water and supplying the steam can be derived from various sources, most commonly from burning combustible materials with an appropriate supply of air in a closed space (called variously combustion chamber, firebox). In some cases the heat source is a nuclear reactor, geothermal energy, solar energy or waste heat from an internal combustion engine or industrial process. In the case of model or toy steam engines, the heat source can be an electric heating element.\n\nThe most useful instrument for analyzing the performance of steam engines is the steam engine indicator."
+     },
+     {
+      "rank": 4,
+      "title": "Steam_engine",
+      "text": "Pumping the working fluid in liquid form during the cycle requires a small fraction of the energy to transport it compared to the energy needed to compress the working fluid in gaseous form in a compressor (as in the Carnot cycle). The cycle of a reciprocating steam engine differs from that of turbines because of condensation and re-evaporation occurring in the cylinder or in the steam inlet passages."
+     },
+     {
+      "rank": 5,
+      "title": "Steam_engine",
+      "text": "Watt's ten-horsepower engines enabled a wide range of manufacturing machinery to be powered. The engines could be sited anywhere that water and coal or wood fuel could be obtained. By 1883, engines that could provide 10,000 hp had become feasible. The stationary steam engine was a key component of the Industrial Revolution, allowing factories to locate where water power was unavailable. The atmospheric engines of Newcomen and Watt were large compared to the amount of power they produced, but high pressure steam engines were light enough to be applied to vehicles such as traction engines and the railway locomotives.\n\nThe history of the steam engine stretches back as far as the first century AD; the first recorded rudimentary steam engine being the aeolipile described by Greek mathematician Hero of Alexandria. In the following centuries, the few steam-powered \"engines\" known were, like the aeolipile, essentially experimental devices used by inventors to demonstrate the properties of steam."
+     }
+    ]
+   }
   },
   {
    "id": "6451601c",
@@ -57,7 +133,41 @@
      "title": "Steam_engine",
      "text": "The stages of a steam turbine are typically arranged to extract the maximum potential work from a specific velocity and pressure of steam, giving rise to a series of variably sized high- and low-pressure stages. Turbines are only efficient if they rotate at relatively high speed, therefore they are usually connected to reduction gearing to drive lower speed applications, such as a ship's propeller. In the vast majority of large electric generating stations, turbines are directly connected to generators with no reduction gearing. Typical speeds are 3600 revolutions per minute (RPM) in the USA with 60 Hertz power, 3000 RPM in Europe and other countries with 50 Hertz electric power systems. In nuclear power applications the turbines typically run at half these speeds, 1800 RPM and 1500 RPM. A turbine rotor is also only capable of providing power when rotating in one direction."
     }
-   ]
+   ],
+   "llm": {
+    "model": "qwen3:4b",
+    "answer": "",
+    "citations": [],
+    "abstained": true,
+    "valid": true,
+    "passages": [
+     {
+      "rank": 1,
+      "title": "Steam_engine",
+      "text": "The stages of a steam turbine are typically arranged to extract the maximum potential work from a specific velocity and pressure of steam, giving rise to a series of variably sized high- and low-pressure stages. Turbines are only efficient if they rotate at relatively high speed, therefore they are usually connected to reduction gearing to drive lower speed applications, such as a ship's propeller. In the vast majority of large electric generating stations, turbines are directly connected to generators with no reduction gearing. Typical speeds are 3600 revolutions per minute (RPM) in the USA with 60 Hertz power, 3000 RPM in Europe and other countries with 50 Hertz electric power systems. In nuclear power applications the turbines typically run at half these speeds, 1800 RPM and 1500 RPM. A turbine rotor is also only capable of providing power when rotating in one direction."
+     },
+     {
+      "rank": 2,
+      "title": "Steam_engine",
+      "text": "Savery's steam pump used condensing steam to create a vacuum and draw water into a chamber, and then applied pressurized steam to further pump the water. Thomas Newcomen's atmospheric engine was the first commercial true steam engine using a piston, and was used in 1712 for pumping in a mine.\n\nA steam turbine consists of one or more rotors (rotating discs) mounted on a drive shaft, alternating with a series of stators (static discs) fixed to the turbine casing. The rotors have a propeller-like arrangement of blades at the outer edge. Steam acts upon these blades, producing rotary motion. The stator consists of a similar, but fixed, series of blades that serve to redirect the steam flow onto the next rotor stage. A steam turbine often exhausts into a surface condenser that provides a vacuum."
+     },
+     {
+      "rank": 3,
+      "title": "Steam_engine",
+      "text": "Many such engines have been designed, from the time of James Watt to the present day, but relatively few were actually built and even fewer went into quantity production; see link at bottom of article for more details. The major problem is the difficulty of sealing the rotors to make them steam-tight in the face of wear and thermal expansion; the resulting leakage made them very inefficient. Lack of expansive working, or any means of control of the cutoff is also a serious problem with many such designs.[citation needed]\n\nThe next major step occurred when James Watt developed (1763–1775) an improved version of Newcomen's engine, with a separate condenser. Boulton and Watt's early engines used half as much coal as John Smeaton's improved version of Newcomen's. Newcomen's and Watt's early engines were \"atmospheric\". They were powered by air pressure pushing a piston into the partial vacuum generated by condensing steam, instead of the pressure of expanding steam."
+     },
+     {
+      "rank": 4,
+      "title": "Steam_engine",
+      "text": "Therefore, a reversing stage or gearbox is usually required where power is required in the opposite direction.[citation needed]\n\nThe weight of boilers and condensers generally makes the power-to-weight ratio of a steam plant lower than for internal combustion engines. For mobile applications steam has been largely superseded by internal combustion engines or electric motors. However, most electric power is generated using steam turbine plant, so that indirectly the world's industry is still dependent on steam power. Recent concerns about fuel sources and pollution have incited a renewed interest in steam both as a component of cogeneration processes and as a prime mover. This is becoming known as the Advanced Steam movement.[citation needed]\n\nIt is possible to use a mechanism based on a pistonless rotary engine such as the Wankel engine in place of the cylinders and valve gear of a conventional reciprocating steam engine."
+     },
+     {
+      "rank": 5,
+      "title": "Steam_engine",
+      "text": "The main use for steam turbines is in electricity generation (in the 1990s about 90% of the world's electric production was by use of steam turbines) however the recent widespread application of large gas turbine units and typical combined cycle power plants has resulted in reduction of this percentage to the 80% regime for steam turbines. In electricity production, the high speed of turbine rotation matches well with the speed of modern electric generators, which are typically direct connected to their driving turbines. In marine service, (pioneered on the Turbinia), steam turbines with reduction gearing (although the Turbinia has direct turbines to propellers with no reduction gearbox) dominated large ship propulsion throughout the late 20th century, being more efficient (and requiring far less maintenance) than reciprocating steam engines. In recent decades, reciprocating Diesel engines, and gas turbines, have almost entirely supplanted steam propulsion for marine applications.\n\nThe Rankine cycle is the fundamental thermodynamic underpinning of the steam engine."
+     }
+    ]
+   }
   },
   {
    "id": "c65b7a15",
@@ -75,7 +185,43 @@
      "title": "Fresno,_California",
      "text": "The subdivision was annexed to the City in January 1912, in an election that was the first in which women voted in the community. At the time of its admission to the City, the Alta Vista Tract was uninhabited but landscaped, although the trees had to be watered by tank wagon. In 1914 developers Billings & Meyering acquired the tract, completed street development, provided the last of the necessary municipal improvements including water service, and began marketing the property with fervor. A mere half decade later the tract had 267 homes. This rapid development was no doubt hastened by the Fresno Traction Company right-of-way along Huntington Boulevard, which provided streetcar connections between downtown and the County Hospital.\n\nThe \"West Side\" of Fresno, also often called \"Southwest Fresno\", is one of the oldest neighborhoods in the city."
     }
-   ]
+   ],
+   "llm": {
+    "model": "qwen3:4b",
+    "answer": "267",
+    "citations": [
+     1
+    ],
+    "abstained": false,
+    "valid": true,
+    "passages": [
+     {
+      "rank": 1,
+      "title": "Fresno,_California",
+      "text": "The subdivision was annexed to the City in January 1912, in an election that was the first in which women voted in the community. At the time of its admission to the City, the Alta Vista Tract was uninhabited but landscaped, although the trees had to be watered by tank wagon. In 1914 developers Billings & Meyering acquired the tract, completed street development, provided the last of the necessary municipal improvements including water service, and began marketing the property with fervor. A mere half decade later the tract had 267 homes. This rapid development was no doubt hastened by the Fresno Traction Company right-of-way along Huntington Boulevard, which provided streetcar connections between downtown and the County Hospital.\n\nThe \"West Side\" of Fresno, also often called \"Southwest Fresno\", is one of the oldest neighborhoods in the city."
+     },
+     {
+      "rank": 2,
+      "title": "Fresno,_California",
+      "text": "The residential architecture of the Tower District contrasts with the newer areas of tract homes urban sprawl in north and east areas of Fresno.\n\nHomes from the early 20th century line this boulevard in the heart of the historic Alta Vista Tract. The section of Huntington Boulevard between First Street on the west to Cedar Avenue on the east is the home to many large, stately homes. The original development of this area began circa 1910, on 190 acres of what had been an alfalfa field. The Alta Vista Tract, as the land would become known, was mapped by William Stranahan for the Pacific Improvement Corporation, and was officially platted in 1911. The tract's boundaries were Balch Avenue on the south, Cedar Avenue on the east, the rear property line of Platt Avenue (east of Sixth Street) and Platt Avenue (west of Sixth Street) on the north, and First Street on the west."
+     },
+     {
+      "rank": 3,
+      "title": "University_of_Chicago",
+      "text": "The Reva and David Logan Center for the Arts opened in October 2012, five years after a $35 million gift from alumnus David Logan and his wife Reva. The center includes spaces for exhibitions, performances, classes, and media production. The Logan Center was designed by Tod Williams and Billie Tsien. This building is actually entirely glass. The brick is a facade designed to keep the glass safe from the wind. The architects later removed sections of the bricks when pressure arose in the form of complaints that the views of the city were blocked.\n\nIn the fall quarter of 2014, the University of Chicago enrolled 5,792 students in the College, 3,468 students in its four graduate divisions, 5,984 students in its professional schools, and 15,244 students overall. In the 2012 Spring Quarter, international students comprised almost 19% of the overall study body, over 26% of students were domestic ethnic minorities, and about 44% of enrolled students were female."
+     },
+     {
+      "rank": 4,
+      "title": "Huguenot",
+      "text": "Then he imposed penalties, closed Huguenot schools and excluded them from favored professions. Escalating, he instituted dragonnades, which included the occupation and looting of Huguenot homes by military troops, in an effort to forcibly convert them. In 1685, he issued the Edict of Fontainebleau, revoking the Edict of Nantes and declaring Protestantism illegal.[citation needed]\n\nNew Rochelle, located in the county of Westchester on the north shore of Long Island Sound, seemed to be the great location of the Huguenots in New York. It is said that they landed on the coastline peninsula of Davenports Neck called \"Bauffet's Point\" after traveling from England where they had previously taken refuge on account of religious persecution, four years before the revocation of the Edict of Nantes. They purchased from John Pell, Lord of Pelham Manor, a tract of land consisting of six thousand one hundred acres with the help of Jacob Leisler."
+     },
+     {
+      "rank": 5,
+      "title": "Fresno,_California",
+      "text": "Another section, Brookhaven, on the southern edge of the West Side south of Jensen and west of Elm, was given the name by the Fresno City Council in an effort to revitalize the neighborhood's image. The isolated subdivision was for years known as the \"Dogg Pound\" in reference to a local gang, and as of late 2008 was still known for high levels of violent crime.\n\nWhile many homes in the neighborhood date back to the 1930s or before, the neighborhood is also home to several public housing developments built between the 1960s and 1990s by the Fresno Housing Authority. The US Department of Housing and Urban Development has also built small subdivisions of single-family homes in the area for purchase by low-income working families."
+     }
+    ]
+   }
   },
   {
    "id": "d668ab83",
@@ -91,7 +237,41 @@
      "title": "Fresno,_California",
      "text": "Most of the wind rose direction occurrences derive from the northwest, as winds are driven downward along the axis of the California Central Valley; in December, January and February there is an increased presence of southeastern wind directions in the wind rose statistics. Fresno meteorology was selected in a national U.S. Environmental Protection Agency study for analysis of equilibrium temperature for use of ten-year meteorological data to represent a warm, dry western United States locale.\n\nThe official record high temperature for Fresno is 115 °F (46.1 °C), set on July 8, 1905, while the official record low is 17 °F (−8 °C), set on January 6, 1913. The average windows for 100 °F (37.8 °C)+, 90 °F (32.2 °C)+, and freezing temperatures are June 1 thru September 13, April 26 thru October 9, and December 10 thru January 28, respectively, and no freeze occurred between in the 1983/1984 season."
     }
-   ]
+   ],
+   "llm": {
+    "model": "qwen3:4b",
+    "answer": "",
+    "citations": [],
+    "abstained": true,
+    "valid": true,
+    "passages": [
+     {
+      "rank": 1,
+      "title": "Fresno,_California",
+      "text": "Most of the wind rose direction occurrences derive from the northwest, as winds are driven downward along the axis of the California Central Valley; in December, January and February there is an increased presence of southeastern wind directions in the wind rose statistics. Fresno meteorology was selected in a national U.S. Environmental Protection Agency study for analysis of equilibrium temperature for use of ten-year meteorological data to represent a warm, dry western United States locale.\n\nThe official record high temperature for Fresno is 115 °F (46.1 °C), set on July 8, 1905, while the official record low is 17 °F (−8 °C), set on January 6, 1913. The average windows for 100 °F (37.8 °C)+, 90 °F (32.2 °C)+, and freezing temperatures are June 1 thru September 13, April 26 thru October 9, and December 10 thru January 28, respectively, and no freeze occurred between in the 1983/1984 season."
+     },
+     {
+      "rank": 2,
+      "title": "Fresno,_California",
+      "text": "December and January are the coldest months, and average around 46.5 °F (8.1 °C), and there are 14 nights with freezing lows annually, with the coldest night of the year typically bottoming out below 30 °F (−1.1 °C). July is the warmest month, averaging 83.0 °F (28.3 °C); normally, there are 32 days of 100 °F (37.8 °C)+ highs and 106 days of 90 °F (32.2 °C)+ highs, and in July and August, there are only three or four days where the high does not reach 90 °F (32.2 °C). Summers provide considerable sunshine, with July peaking at 97 percent of the total possible sunlight hours; conversely, January is the lowest with only 46 percent of the daylight time in sunlight because of thick tule fog. However, the year averages 81% of possible sunshine, for a total of 3550 hours. Average annual precipitation is around 11.5 inches (292.1 mm), which, by definition, would classify the area as a semidesert."
+     },
+     {
+      "rank": 3,
+      "title": "Jacksonville,_Florida",
+      "text": "Like much of the south Atlantic region of the United States, Jacksonville has a humid subtropical climate (Köppen Cfa), with mild weather during winters and hot and humid weather during summers. Seasonal rainfall is concentrated in the warmest months from May through September, while the driest months are from November through April. Due to Jacksonville's low latitude and coastal location, the city sees very little cold weather, and winters are typically mild and sunny. Summers can be hot and wet, and summer thunderstorms with torrential but brief downpours are common.\n\nMean monthly temperatures range from around 53 F in January to 82 F in July. High temperatures average 64 to 92 °F (18 to 33 °C) throughout the year. High heat indices are common for the summer months in the area, with indices above 110 °F (43.3 °C) possible. The highest temperature recorded was 104 °F (40 °C) on July 11, 1879 and July 28, 1872."
+     },
+     {
+      "rank": 4,
+      "title": "Fresno,_California",
+      "text": "Annual rainfall has ranged from 23.57 inches (598.7 mm) in the “rain year” from July 1982 to June 1983 down to 4.43 inches (112.5 mm) from July 1933 to June 1934. The most rainfall in one month was 9.54 inches (242.3 mm) in November 1885 and the most rainfall in 24 hours 3.55 inches (90.2 mm) on November 18, 1885. Measurable precipitation falls on an average of 48 days annually. Snow is a rarity; the heaviest snowfall at the airport was 2.2 inches (0.06 m) on January 21, 1962.\n\nThe 2010 United States Census reported that Fresno had a population of 494,665. The population density was 4,404.5 people per square mile (1,700.6/km²)."
+     },
+     {
+      "rank": 5,
+      "title": "Victoria_(Australia)",
+      "text": "The Alps are part of the Great Dividing Range mountain system extending east-west through the centre of Victoria. Average temperatures are less than 9 °C (48 °F) in winter and below 0 °C (32 °F) in the highest parts of the ranges. The state's lowest minimum temperature of −11.7 °C (10.9 °F) was recorded at Omeo on 13 June 1965, and again at Falls Creek on 3 July 1970. Temperature extremes for the state are listed in the table below:\n\nRail transport in Victoria is provided by several private and public railway operators who operate over government-owned lines."
+     }
+    ]
+   }
   },
   {
    "id": "5cd37fea",
@@ -107,7 +287,43 @@
      "title": "Steam_engine",
      "text": "There have at one time or another been steam-powered farm tractors, motorcycles (without much success) and even automobiles as the Stanley Steamer.\n\nTrevithick continued his own experiments using a trio of locomotives, concluding with the Catch Me Who Can in 1808. Only four years later, the successful twin-cylinder locomotive Salamanca by Matthew Murray was used by the edge railed rack and pinion Middleton Railway. In 1825 George Stephenson built the Locomotion for the Stockton and Darlington Railway. This was the first public steam railway in the world and then in 1829, he built The Rocket which was entered in and won the Rainhill Trials. The Liverpool and Manchester Railway opened in 1830 making exclusive use of steam power for both passenger and freight trains.\n\nA method to lessen the magnitude of this heating and cooling was invented in 1804 by British engineer Arthur Woolf, who patented his Woolf high-pressure compound engine in 1805."
     }
-   ]
+   ],
+   "llm": {
+    "model": "qwen3:4b",
+    "answer": "Matthew Murray",
+    "citations": [
+     1
+    ],
+    "abstained": false,
+    "valid": true,
+    "passages": [
+     {
+      "rank": 1,
+      "title": "Steam_engine",
+      "text": "There have at one time or another been steam-powered farm tractors, motorcycles (without much success) and even automobiles as the Stanley Steamer.\n\nTrevithick continued his own experiments using a trio of locomotives, concluding with the Catch Me Who Can in 1808. Only four years later, the successful twin-cylinder locomotive Salamanca by Matthew Murray was used by the edge railed rack and pinion Middleton Railway. In 1825 George Stephenson built the Locomotion for the Stockton and Darlington Railway. This was the first public steam railway in the world and then in 1829, he built The Rocket which was entered in and won the Rainhill Trials. The Liverpool and Manchester Railway opened in 1830 making exclusive use of steam power for both passenger and freight trains.\n\nA method to lessen the magnitude of this heating and cooling was invented in 1804 by British engineer Arthur Woolf, who patented his Woolf high-pressure compound engine in 1805."
+     },
+     {
+      "rank": 2,
+      "title": "University_of_Chicago",
+      "text": "In 1955, Eero Saarinen was contracted to develop a second master plan, which led to the construction of buildings both north and south of the Midway, including the Laird Bell Law Quadrangle (a complex designed by Saarinen); a series of arts buildings; a building designed by Ludwig Mies van der Rohe for the university's School of Social Service Administration;, a building which is to become the home of the Harris School of Public Policy Studies by Edward Durrell Stone, and the Regenstein Library, the largest building on campus, a brutalist structure designed by Walter Netsch of the Chicago firm Skidmore, Owings & Merrill. Another master plan, designed in 1999 and updated in 2004, produced the Gerald Ratner Athletics Center (2003), the Max Palevsky Residential Commons (2001), South Campus Residence Hall and dining commons (2009), a new children's hospital, and other construction, expansions, and restorations."
+     },
+     {
+      "rank": 3,
+      "title": "University_of_Chicago",
+      "text": "The buildings of the Main Quadrangles were designed by Cobb, Shepley, Rutan and Coolidge, Holabird & Roche, and other architectural firms in a mixture of the Victorian Gothic and Collegiate Gothic styles, patterned on the colleges of the University of Oxford. (Mitchell Tower, for example, is modeled after Oxford's Magdalen Tower, and the university Commons, Hutchinson Hall, replicates Christ Church Hall.)\n\nAfter the 1940s, the Gothic style on campus began to give way to modern styles."
+     },
+     {
+      "rank": 4,
+      "title": "University_of_Chicago",
+      "text": "The Reva and David Logan Center for the Arts opened in October 2012, five years after a $35 million gift from alumnus David Logan and his wife Reva. The center includes spaces for exhibitions, performances, classes, and media production. The Logan Center was designed by Tod Williams and Billie Tsien. This building is actually entirely glass. The brick is a facade designed to keep the glass safe from the wind. The architects later removed sections of the bricks when pressure arose in the form of complaints that the views of the city were blocked.\n\nIn the fall quarter of 2014, the University of Chicago enrolled 5,792 students in the College, 3,468 students in its four graduate divisions, 5,984 students in its professional schools, and 15,244 students overall. In the 2012 Spring Quarter, international students comprised almost 19% of the overall study body, over 26% of students were domestic ethnic minorities, and about 44% of enrolled students were female."
+     },
+     {
+      "rank": 5,
+      "title": "Warsaw",
+      "text": "After liberation, rebuilding began as in other cities of the communist-ruled PRL. Most of the historical buildings were thoroughly reconstructed. However, some of the buildings from the 19th century that had been preserved in reasonably reconstructible form were nonetheless eradicated in the 1950s and 1960s (e.g. Leopold Kronenberg Palace). Mass residential blocks were erected, with basic design typical of Eastern bloc countries.\n\nGothic architecture is represented in the majestic churches but also at the burgher houses and fortifications. The most significant buildings are St. John's Cathedral (14th century), the temple is a typical example of the so-called Masovian gothic style, St. Mary's Church (1411), a town house of Burbach family (14th century), Gunpowder Tower (after 1379) and the Royal Castle Curia Maior (1407–1410). The most notable examples of Renaissance architecture in the city are the house of Baryczko merchant family (1562), building called \"The Negro\" (early 17th century) and Salwator tenement (1632)."
+     }
+    ]
+   }
   }
  ]
 }
