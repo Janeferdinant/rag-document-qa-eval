@@ -120,3 +120,16 @@ def test_system_prompt_limits_abstention_to_passages_without_the_answer() -> Non
 
     assert "only when none of the passages contains the answer" in SYSTEM_PROMPT
     assert "Never answer from memory" not in SYSTEM_PROMPT
+
+
+@pytest.mark.parametrize("word", ["abstain", "Abstain.", "none", "N/A", "no answer", "unanswerable"])
+def test_abstain_flag_with_a_placeholder_word_and_no_citation_is_an_abstention(word: str) -> None:
+    """A small model wrote the word 'abstain' into `answer` (930 such replies in the first full run): the flag
+    and the empty citation list say what it meant, so this is an abstention, not an invalid reply."""
+    parsed = parse_answer(completion({"answer": word, "citations": [], "abstain": True}), 5)
+    assert parsed == CitedAnswer(answer="", citations=[], abstain=True)
+
+
+def test_abstain_flag_with_a_real_answer_stays_invalid() -> None:
+    with pytest.raises(AnswerFormatError, match="abstain"):
+        parse_answer(completion({"answer": "Romulus", "citations": [], "abstain": True}), 5)

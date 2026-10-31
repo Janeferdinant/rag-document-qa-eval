@@ -19,6 +19,10 @@ SYSTEM_PROMPT = (
 )
 
 
+# Words a model may write into `answer` instead of leaving it empty when it sets `abstain`: the flag says what it meant.
+ABSTAIN_WORDS = frozenset({"abstain", "abstained", "none", "n/a", "no answer", "unanswerable"})
+
+
 class CitedAnswer(BaseModel):
     answer: str
     citations: list[int]
@@ -54,7 +58,8 @@ def parse_answer(c: Completion, n_passages: int) -> CitedAnswer:
     bad = [n for n in parsed.citations if not 1 <= n <= n_passages]
     if bad:
         raise AnswerFormatError(f"citation {bad[0]} is outside 1..{n_passages}; passages are numbered from 1")
-    empty = not parsed.answer.strip()
+    placeholder = parsed.answer.strip().strip(".!").lower() in ABSTAIN_WORDS
+    empty = not parsed.answer.strip() or (parsed.abstain and placeholder)
     if parsed.abstain != empty:
         raise AnswerFormatError("`abstain` must be true exactly when `answer` is empty")
     if parsed.abstain:
