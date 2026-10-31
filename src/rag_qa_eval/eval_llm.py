@@ -8,8 +8,11 @@ also scored on the sample, so the comparison is paired. Needs the optional `llm`
 from __future__ import annotations
 
 import hashlib
+import json
+import os
 import random
 import time
+import urllib.request
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -229,7 +232,12 @@ def _baseline_rows(
     by_id = {r["qid"]: r for r in reader["per_question"]}
     rows = []
     for q in qs:
-        r = by_id[anonymise_id(q.qid)]
+        r = by_id.get(anonymise_id(q.qid))
+        if r is None:
+            raise ValueError(
+                "the reader run does not hold this question: run the reader and llm stages with the same seed "
+                "and number of test questions"
+            )
         answered = not r["abstained"]
         rows.append(
             {
@@ -256,6 +264,57 @@ def llm_retriever(
     return chunks, retriever, method, strategy, size
 
 
+# The context size the harness always sends to Ollama (its Ollama client defaults to 8192).
+OLLAMA_NUM_CTX = 8192
+
+
+def describe_processor(ps: dict[str, Any], model: str) -> str | None:
+    """Where Ollama runs a loaded model, from its `/api/ps` reply: '100% GPU', 'CPU' or a split. None if not loaded."""
+    for m in ps.get("models", []):
+        if m.get("name") == model or m.get("model") == model:
+            size, vram = int(m.get("size", 0)), int(m.get("size_vram", 0))
+            if size <= 0:
+                return None
+            if vram >= size:
+                return "100% GPU"
+            if vram <= 0:
+                return "CPU"
+            gpu = round(100 * vram / size)
+            return f"{gpu}% GPU, {100 - gpu}% CPU"
+    return None
+
+
+def ollama_base_url(host: str | None) -> str:
+    """The URL to reach Ollama from the `OLLAMA_HOST` variable, which may be a bind address (0.0.0.0) or lack a port."""
+    if not host:
+        return "http://127.0.0.1:11434"
+    if host.startswith("http"):
+        return host
+    name, _, port = host.partition(":")
+    return f"http://{'127.0.0.1' if name in ('0.0.0.0', '::') else name}:{port or 11434}"
+
+
+def ollama_processor(arm: ArmSpec) -> str | None:
+    """Load the arm's model on the local Ollama server and ask where it runs. None for other providers or when the
+    server cannot say. The model torch measures as 'CPU only' elsewhere in the run log is a different thing."""
+    if arm.provider != "ollama":
+        return None
+    base = ollama_base_url(os.environ.get("OLLAMA_HOST"))
+    try:
+        warm = urllib.request.Request(
+            f"{base}/api/generate",
+            data=json.dumps(
+                {"model": arm.model, "prompt": "", "keep_alive": "2m", "options": {"num_ctx": OLLAMA_NUM_CTX}}
+            ).encode(),
+            headers={"Content-Type": "application/json"},
+        )
+        urllib.request.urlopen(warm, timeout=120).read()  # noqa: S310 (a local server the user runs)
+        with urllib.request.urlopen(f"{base}/api/ps", timeout=30) as resp:  # noqa: S310
+            return describe_processor(json.loads(resp.read()), arm.model)
+    except (OSError, ValueError):
+        return None
+
+
 def arm_client(arm: ArmSpec, cache_dir: Path) -> LLMClient:
     """The arm's model client behind the response cache that makes the stage resumable (needs the llm extra)."""
     from evalharness.llm.base import get_client
@@ -278,6 +337,7 @@ def run_llm(
     judge: tuple[LLMClient, str] | None = None,
     sample_n: int = 100,
     tracer: Any | None = None,
+    processor_probe: Callable[[ArmSpec], str | None] | None = None,
     log: Callable[[str], None] = print,
 ) -> dict[str, Any]:
     """Run every arm. A `UsageLimitError` from a client stops the run and is re-raised: finished answers are in the
@@ -325,7 +385,8 @@ def run_llm(
         per_question[arm.name] = rows
         arm_meta.append(
             {"name": arm.name, "model": arm.model, "provider": arm.provider, "model_digest": digest,
-             "billing": billing, "questions": len(qs)}
+             "billing": billing, "questions": len(qs),
+             "processor": processor_probe(arm) if processor_probe else None}
         )  # fmt: skip
         log(f"{arm.name}: done ({len(rows)} questions)")
     per_question[BASELINE] = _baseline_rows(reader_result, test, top1)

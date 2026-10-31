@@ -1,3 +1,5 @@
+> **Superseded run log, kept for the record:** third full run (same prompt and parser as the final run); replaced by `2026-10-31-llm.md`, which corrects citation precision and recall to answerable questions only, adds paired differences on all questions and failure examples for every category, and records Ollama's processor.
+
 # LLM answers with citations
 
 - Date: 2026-10-30, seed 13, k 5, prompt hash `533d7560473ccf0e264c73aaf2aeff0064426dcfdc8bd95e48fcfc6267f520b0`

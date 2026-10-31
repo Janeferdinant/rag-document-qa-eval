@@ -18,9 +18,11 @@ This note explains where the LLM answer step plugs into the pipeline and how it 
 | Module | Purpose |
 |---|---|
 | `llm_answers.py` | `CitedAnswer` (`answer`, `citations`, `abstain`), the numbered-passage prompt, validation, and `generate_answer` with one retry. |
-| `llm.py` (addition) | `HarnessClient`: an adapter that gives any `evalharness` client the old `generate(prompt)` interface, so the old reader and CLI can use Claude Code, Codex, Ollama and the rest. |
-| `llm_metrics.py` | Citation precision and recall (the cited passage contains a gold answer span). Abstention statistics reuse `qa_metrics.abstention_stats`. |
-| `eval_llm.py` | The `llm` stage: runs each arm on the same questions, scores it, and writes `docs/runs/<date>-llm.json` and `.md`. |
+| `llm.py` (addition) | `HarnessClient`: an adapter that gives any `evalharness` client the old `generate(prompt)` interface, so `LLMReader` can use Claude Code, Codex, Ollama and the rest from Python. The `rag-qa ask --llm` choices are not changed by this work, so the adapter is not wired into that command. |
+| `llm_metrics.py` | Citation precision and recall (the cited passage contains a gold answer span), over answerable questions. |
+| `eval_llm.py` | The `llm` stage: runs each arm on the same questions, scores it (abstention precision and recall with bootstrap intervals, paired differences from the extractive baseline), and writes `docs/runs/<date>-llm.json` and `.md`. |
+| `llm_report.py` | Renders the run log as Markdown. It needs no optional dependency, so `rag-qa report` works on a base install. |
+| `demo_llm.py` | Attaches a precomputed LLM answer to each browser-demo example, read back from the stage's response cache (local arms only). |
 | `tracing.py` | Optional OpenTelemetry tracing (`pip install ".[tracing]"`, `RAG_TRACING=1`). |
 
 ## Dependencies and licences
@@ -34,3 +36,5 @@ The floor moves from 3.10 to 3.11, because the harness needs 3.11 and Python 3.1
 ## Arms
 
 The extractive reader (baseline); `qwen3:4b` and `qwen3:8b` on all 800 questions; Claude Code and Codex CLI on a fixed 100-question sample, stratified by answerable or unanswerable with seed 0. The local models are also scored on the same 100 for paired comparisons. Hosted arms run through the vendors' own command line tools, so they measure the model plus each tool's own system prompt.
+
+To add the hosted arms later, run all four arms in one command (`--arms qwen3:4b qwen3:8b claude_code codex_cli`). The local arms are then response-cache hits, and the new run log holds every arm; a run with the hosted arms alone would become the latest log and drop the local rows from the README table.

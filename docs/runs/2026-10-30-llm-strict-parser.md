@@ -1,3 +1,5 @@
+> **Superseded run log, kept for the record:** second full run, adopted prompt but a parser that rejected `abstain` written into the answer field; replaced by the final run.
+
 # LLM answers with citations
 
 - Date: 2026-10-30, seed 13, k 5, prompt hash `533d7560473ccf0e264c73aaf2aeff0064426dcfdc8bd95e48fcfc6267f520b0`

@@ -1,3 +1,5 @@
+> **Superseded run log, kept for the record:** first full run, original prompt (it made qwen3:4b abstain on nearly everything); replaced by the adopted prompt, see `docs/llm-answers.md`.
+
 # LLM answers with citations
 
 - Date: 2026-10-30, seed 13, k 5, prompt hash `8d9c1310451589ae542b0ec98ed06e13647746bc221c8abd2d4024aa70160f3b`

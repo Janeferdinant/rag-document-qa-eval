@@ -189,3 +189,48 @@ def test_stage_records_one_span_per_answer_when_a_tracer_is_given(
     tracer = setup_tracing({"RAG_TRACING": "1"}, exporter=exporter)
     run_fake(world, tmp_path, tracer=tracer)
     assert len(exporter.get_finished_spans()) == n_test(world) + 20  # the local arm plus the sample-only arm
+
+
+def test_describe_processor_reads_ollama_ps_output() -> None:
+    from rag_qa_eval.eval_llm import describe_processor
+
+    def ps(size: int, vram: int) -> dict[str, Any]:
+        return {"models": [{"name": "qwen3:4b", "size": size, "size_vram": vram}]}
+
+    assert describe_processor(ps(100, 100), "qwen3:4b") == "100% GPU"
+    assert describe_processor(ps(100, 0), "qwen3:4b") == "CPU"
+    assert describe_processor(ps(100, 60), "qwen3:4b") == "60% GPU, 40% CPU"
+    assert describe_processor(ps(100, 100), "qwen3:8b") is None  # not loaded
+    assert describe_processor({}, "qwen3:4b") is None
+
+
+def test_arm_meta_records_the_processor_the_probe_reports(world: dict[str, Any], tmp_path: Path) -> None:
+    out = run_fake(
+        world, tmp_path, processor_probe=lambda arm: "100% GPU" if arm.provider == "ollama" else None
+    )
+    arms = {a["name"]: a for a in out["meta"]["arms"]}
+    assert arms["fake-local"]["processor"] == "100% GPU" and arms["fake-hosted"]["processor"] is None
+
+
+def test_a_reader_run_from_another_question_sample_gives_a_clear_error(world: dict[str, Any]) -> None:
+    from rag_qa_eval.eval_llm import _baseline_rows
+
+    test = world["prep"].sample("test", 5, 13, False)
+    with pytest.raises(ValueError, match="same seed and number of test questions"):
+        _baseline_rows({"per_question": []}, test, {q.qid: True for q in test})
+
+
+@pytest.mark.parametrize(
+    ("host", "base"),
+    [
+        (None, "http://127.0.0.1:11434"),
+        ("0.0.0.0", "http://127.0.0.1:11434"),  # a bind address: connect to the loopback instead
+        ("0.0.0.0:9000", "http://127.0.0.1:9000"),
+        ("localhost", "http://localhost:11434"),
+        ("http://example.test:11434", "http://example.test:11434"),
+    ],
+)
+def test_ollama_base_url_from_the_host_variable(host: str | None, base: str) -> None:
+    from rag_qa_eval.eval_llm import ollama_base_url
+
+    assert ollama_base_url(host) == base

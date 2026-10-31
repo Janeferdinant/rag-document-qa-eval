@@ -7,7 +7,7 @@
    "arm": "qwen3:4b",
    "model": "qwen3:4b",
    "passages": 5,
-   "run_date": "2026-10-30"
+   "run_date": "2026-10-31"
   }
  },
  "examples": [

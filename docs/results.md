@@ -184,20 +184,20 @@ Median per-stage retrieval time (ms):
 
 ## LLM answers with citations
 
-- Date: 2026-10-30, seed 13, k 5, prompt hash `533d7560473ccf0e264c73aaf2aeff0064426dcfdc8bd95e48fcfc6267f520b0`
-- Hardware: {'os': 'Windows 10', 'cpu': 'AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD', 'logical_cores': 16, 'ram_gb': 34.3, 'gpu': 'none (CPU only)', 'python': '3.11.14', 'torch': '2.14.1+cpu', 'torch_threads': 8, 'transformers': '5.20.0', 'numpy': '2.2.6', 'code_commit': '997092b', 'sentence_transformers': '6.1.0'}
-- Wall time: 313.6 s; test questions 800, sample 100
+- Date: 2026-10-31, seed 13, k 5, prompt hash `533d7560473ccf0e264c73aaf2aeff0064426dcfdc8bd95e48fcfc6267f520b0`
+- Hardware: {'os': 'Windows 10', 'cpu': 'AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD', 'logical_cores': 16, 'ram_gb': 34.3, 'gpu': 'none (CPU only)', 'python': '3.11.14', 'torch': '2.14.1+cpu', 'torch_threads': 8, 'transformers': '5.20.0', 'numpy': '2.2.6', 'code_commit': 'c738e13+dirty', 'sentence_transformers': '6.1.0'}
+- Wall time: 327.2 s; test questions 800, sample 100
 
 ## Arms
 
 | Arm | Access | Questions | Exact match | F1 | Abstention precision / recall | Citation precision | Citation recall | Faithfulness (0 to 2) | Invalid | p50 latency | Cost per 1,000 (API-equivalent) | Status |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| extractive-baseline | local, CPU | sample (n=100) | 0.710 [0.620, 0.800] | 0.730 [0.643, 0.813] | 0.760 / 0.775 | 0.720 [0.600, 0.840] | n/a | n/a | 0.000 | - | $0.00 | Verified (run 2026-10-30, seed 13) |
-| extractive-baseline | local, CPU | all test questions (n=800) | 0.704 [0.672, 0.734] | 0.732 [0.702, 0.761] | 0.771 / 0.797 | 0.723 [0.677, 0.768] | n/a | n/a | 0.000 | - | $0.00 | Verified (run 2026-10-30, seed 13) |
-| qwen3:4b | local (Ollama) | sample (n=100) | 0.690 [0.590, 0.770] | 0.699 [0.604, 0.782] | 0.689 / 0.857 | 0.710 [0.564, 0.839] | 0.938 [0.844, 1.000] | 1.897 [1.744, 2.000] | 0.000 | 0.46 s | $0.00 | Verified (run 2026-10-30, seed 13) |
-| qwen3:4b | local (Ollama) | all test questions (n=800) | 0.606 [0.571, 0.639] | 0.640 [0.606, 0.671] | 0.664 / 0.769 | 0.658 [0.610, 0.705] | 0.968 [0.946, 0.988] | 1.904 [1.863, 1.942] | 0.000 | 0.46 s | $0.00 | Verified (run 2026-10-30, seed 13) |
-| qwen3:8b | local (Ollama) | sample (n=100) | 0.390 [0.300, 0.490] | 0.452 [0.362, 0.548] | 1.000 / 0.061 | 0.452 [0.354, 0.545] | 0.980 [0.939, 1.000] | 1.680 [1.567, 1.794] | 0.000 | 0.56 s | $0.00 | Verified (run 2026-10-30, seed 13) |
-| qwen3:8b | local (Ollama) | all test questions (n=800) | 0.347 [0.314, 0.381] | 0.420 [0.388, 0.452] | 0.852 / 0.058 | 0.453 [0.419, 0.486] | 0.964 [0.946, 0.980] | 1.748 [1.710, 1.786] | 0.000 | 0.56 s | $0.00 | Verified (run 2026-10-30, seed 13) |
+| extractive-baseline | local, CPU | sample (n=100) | 0.710 [0.620, 0.800] | 0.730 [0.643, 0.813] | 0.760 / 0.775 | 0.923 [0.821, 1.000] | n/a | n/a | 0.000 | - | $0.00 | Verified (run 2026-10-31, seed 13) |
+| extractive-baseline | local, CPU | all test questions (n=800) | 0.704 [0.672, 0.734] | 0.732 [0.702, 0.761] | 0.771 / 0.797 | 0.907 [0.875, 0.939] | n/a | n/a | 0.000 | - | $0.00 | Verified (run 2026-10-31, seed 13) |
+| qwen3:4b | local (Ollama) | sample (n=100) | 0.690 [0.590, 0.770] | 0.699 [0.604, 0.782] | 0.689 / 0.857 | 0.866 [0.756, 0.953] | 0.938 [0.844, 1.000] | 1.897 [1.744, 2.000] | 0.000 | 0.46 s | $0.00 | Verified (run 2026-10-31, seed 13) |
+| qwen3:4b | local (Ollama) | all test questions (n=800) | 0.606 [0.571, 0.639] | 0.640 [0.606, 0.671] | 0.664 / 0.769 | 0.895 [0.862, 0.928] | 0.968 [0.946, 0.988] | 1.904 [1.863, 1.942] | 0.000 | 0.46 s | $0.00 | Verified (run 2026-10-31, seed 13) |
+| qwen3:8b | local (Ollama) | sample (n=100) | 0.390 [0.300, 0.490] | 0.452 [0.362, 0.548] | 1.000 / 0.061 | 0.860 [0.774, 0.935] | 0.980 [0.939, 1.000] | 1.680 [1.567, 1.794] | 0.000 | 0.56 s | $0.00 | Verified (run 2026-10-31, seed 13) |
+| qwen3:8b | local (Ollama) | all test questions (n=800) | 0.347 [0.314, 0.381] | 0.420 [0.388, 0.452] | 0.852 / 0.058 | 0.870 [0.841, 0.899] | 0.964 [0.946, 0.980] | 1.748 [1.710, 1.786] | 0.000 | 0.56 s | $0.00 | Verified (run 2026-10-31, seed 13) |
 
 **Paired difference from the extractive baseline** on the same sample questions (mean [95% CI] of arm minus baseline, paired bootstrap):
 
@@ -206,7 +206,14 @@ Median per-stage retrieval time (ms):
 | qwen3:4b | -0.031 [-0.127, 0.061] | -0.020 [-0.120, 0.070] |
 | qwen3:8b | -0.278 [-0.402, -0.157] | -0.320 [-0.440, -0.200] |
 
-Passages: the top 5 from hybrid+rerank over sentence chunks of 160 words (all-MiniLM-L6-v2). Prompt hash `533d7560473c`. The sample is 100 questions, stratified by answerable or unanswerable, seed 0. Hosted arms run through the vendors' command line tools, so they measure the model plus each tool's own system prompt, and their latency includes the tool's start-up. Cost is the API-equivalent price of the tokens used, not money paid. Invalid answers (no valid cited answer after one retry) count as wrong. Faithfulness is judged by qwen3:8b on answered questions (0 unsupported, 1 partly, 2 fully supported by the cited passages). This judge was not calibrated for this rubric: its calibration measured answer correctness (100 SQuAD 2.0 answers graded against gold answers, labelled by the author; weighted kappa 0.835, 95% CI 0.682 to 0.945; llm-eval-harness v0.1.0 README). Treat the faithfulness column as a rough check, not a validated measurement.
+The same differences on all 800 test questions (arms that ran on all of them):
+
+| Arm | F1 difference | Exact match difference |
+|---|---|---|
+| qwen3:4b | -0.092 [-0.129, -0.053] | -0.098 [-0.134, -0.058] |
+| qwen3:8b | -0.312 [-0.357, -0.271] | -0.356 [-0.401, -0.315] |
+
+Passages: the top 5 from hybrid+rerank over sentence chunks of 160 words (all-MiniLM-L6-v2). Prompt hash `533d7560473c`. The sample is 100 questions, stratified by answerable or unanswerable, seed 0. Local arms ran in Ollama on: qwen3:4b 100% GPU, qwen3:8b 100% GPU. The extractive baseline reads the top 1 passage (the committed reader run), not five. Citation precision and recall are over answerable questions only (an unanswerable question has no gold span to cite); for the baseline, precision is whether its one passage contains a gold span. Latency is the time recorded for the call that produced each answer, so cached answers keep it. Cost is the API-equivalent price of the tokens used, not money paid. Invalid answers (no valid cited answer after one retry) count as wrong. Faithfulness is judged by qwen3:8b on answered questions (0 unsupported, 1 partly, 2 fully supported by the cited passages). This judge was not calibrated for this rubric: its calibration measured answer correctness (100 SQuAD 2.0 answers graded against gold answers, labelled by the author; weighted kappa 0.835, 95% CI 0.682 to 0.945; llm-eval-harness v0.1.0 README). Treat the faithfulness column as a rough check, not a validated measurement.
 
 ## Error analysis (qwen3:4b)
 
@@ -221,12 +228,44 @@ Passages: the top 5 from hybrid+rerank over sentence chunks of 160 words (all-Mi
 | missed_abstention | 91 | unanswerable, the model gave an answer |
 | invalid_output | 0 | no valid cited answer after one retry |
 
-- `53d37030` correct: What alumni wrote "The Closing of the American Mind"? | gold ['Allan Bloom', 'Allan Bloom'] | model 'Allan Bloom' | cited [1]
-- `5bb66595` correct: What did the increase in skilled workers lead to? | gold ['a decrease in the price of skilled labor', 'decrease in the price of skilled labor'] | model 'a decrease in the price of skilled labor' | cited [1]
-- `d6115049` correct: How would one write T(n) = 7n2 + 15n + 40 in big O notation?  | gold ['T(n) = O(n2)', 'T(n) = O(n2)'] | model 'O(n^2)' | cited [1]
-- `b971f019` retrieval_failure: What famous civil rights leader called Harvard home? | gold ['W. E. B. Du Bois', 'W. E. B. Du Bois'] | model None | cited []
-- `f058c176` retrieval_failure: What philosophy of thought  addresses wealth inequality? | gold ['Neoclassical economics', 'Neoclassical economics'] | model None | cited []
-- `51833e4a` retrieval_failure: What is the name of world renowned cellist is a former Harvard student? | gold ['Yo Yo Ma', 'Yo Yo Ma'] | model None | cited []
-- `654b1079` correct_abstention:  colonial rule would not be considered what type of imperialism? | gold [] | model None | cited []
-- `3b4922ba` correct_abstention:  What was made valid in the late 19th and 20th centuries? | gold [] | model None | cited []
-- `62cdda03` correct_abstention:  When was Isiah Bowman not appointed to President Wilson's Inquiry? | gold [] | model None | cited []
+- `53d37030` correct: What alumni wrote "The Closing of the American Mind"? | gold ['Allan Bloom'] | model 'Allan Bloom' | cited [1] | cited excerpt 'In literature, author of the New York Times bestseller Before I Fall Lauren Oliver, Pulitzer Prize winning novelist Philip Roth, Canadian-born Pulitzer Prize and Nobel Prize for Literature winning writer Saul Bellow, political philosopher, '
+- `5bb66595` correct: What did the increase in skilled workers lead to? | gold ['a decrease in the price of skilled labor', 'decrease in the price of skilled labor'] | model 'a decrease in the price of skilled labor' | cited [1] | cited excerpt 'During the mass high school education movement from 1910–1940, there was an increase in skilled workers, which led to a decrease in the price of skilled labor. High school education during the period was designed to equip students with nece'
+- `d2b8c0a4` wrong_citation: The French and Indian War was the New World aspect of what European conflict? | gold ["Seven Years' War"] | model "Seven Years' War" | cited [1] | cited excerpt "The French and Indian War (1754–1763) was the North American theater of the worldwide Seven Years' War. The war was fought between the colonies of British America and New France, with both sides supported by military units from their parent"
+- `235fa899` wrong_citation: What is the estimate for the amount of tree species in the amazon tropical rain forest? | gold ['16,000', '16,000 species'] | model '16,000' | cited [1] | cited excerpt 'One in five of all the bird species in the world live in the rainforests of the Amazon, and one in five of the fish species live in Amazonian rivers and streams. Scientists have described between 96,660 and 128,843 invertebrate species in B'
+- `b971f019` retrieval_failure: What famous civil rights leader called Harvard home? | gold ['W. E. B. Du Bois'] | model None | cited [] | cited excerpt ''
+- `59e064e3` retrieval_failure: What actually causes rigidity in matter? | gold ['Pauli exclusion principle', 'the Pauli exclusion principle'] | model None | cited [] | cited excerpt ''
+- `3c334047` over_abstention: When did the four rightly guided Caliphs die? | gold ['7th century', 'the 7th century'] | model None | cited [] | cited excerpt ''
+- `5d01b8c7` over_abstention: How many inhabitants did Betty Meggers believe could occupy each square kilometre of the Amazon? | gold ['0.2'] | model None | cited [] | cited excerpt ''
+- `34ac07cb` wrong_answer: What else was used by pharmas? | gold ['many other herbs', 'many other herbs not listed'] | model 'tobacco and patent medicines' | cited [1] | cited excerpt 'The word pharmacy is derived from its root word pharma which was a term used since the 15th–17th centuries. However, the original Greek roots from pharmakos imply sorcery or even poison. In addition to pharma responsibilities, the pharma of'
+- `26e84521` wrong_answer: What is the repulsive force of close range atom interaction? | gold ['normal force'] | model 'Pauli repulsion' | cited [3] | cited excerpt 'When their electron clouds overlap, Pauli repulsion (due to fermionic nature of electrons) follows resulting in the force that acts in a direction normal to the surface interface between two objects.:93 The normal force, for example, is res'
+- `224c2a95` correct_abstention: Frame Relay requires a handshake from what? | gold [] | model None | cited [] | cited excerpt ''
+- `e8ec96a9` correct_abstention: By what method did Maududi not want to change the hearts and minds of individuals? | gold [] | model None | cited [] | cited excerpt ''
+- `5e00882d` missed_abstention: In which French city was about 2,000 Huguenots killed? | gold [] | model 'Paris' | cited [1] | cited excerpt "In what became known as the St. Bartholomew's Day Massacre of 24 August – 3 October 1572, Catholics killed thousands of Huguenots in Paris. Similar massacres took place in other towns in the weeks following. The main provincial towns and ci"
+- `765f96d8` missed_abstention: How much did it snow in 1885? | gold [] | model '2.2 inches (0.06 m)' | cited [1] | cited excerpt 'Annual rainfall has ranged from 23.57 inches (598.7 mm) in the “rain year” from July 1982 to June 1983 down to 4.43 inches (112.5 mm) from July 1933 to June 1934. The most rainfall in one month was 9.54 inches (242.3 mm) in November 1885 an'
+
+## Error analysis (qwen3:8b)
+
+| category | count | description |
+|---|---|---|
+| correct | 317 | answerable, answer matches a gold answer and the cited passage contains it |
+| wrong_citation | 2 | answerable, answer matches a gold answer but the cited passages do not contain a gold span |
+| retrieval_failure | 14 | answerable, but no retrieved passage contains a gold answer string |
+| over_abstention | 0 | answerable, a retrieved passage contains the answer, the model abstained |
+| wrong_answer | 73 | answerable, the answer does not match a gold answer |
+| correct_abstention | 23 | unanswerable, the model abstained |
+| missed_abstention | 371 | unanswerable, the model gave an answer |
+| invalid_output | 0 | no valid cited answer after one retry |
+
+- `61e20e8f` correct: Although not a fuel  ___ is the chemical compound the generates the most occurrence of explosions. | gold ['Oxygen'] | model 'Oxygen' | cited [1] | cited excerpt "Philo incorrectly surmised that parts of the air in the vessel were converted into the classical element fire and thus were able to escape through pores in the glass. Many centuries later Leonardo da Vinci built on Philo's work by observing"
+- `77eb537a` correct: The party awarded a seat is the one with the highest what? | gold ['quotient'] | model 'quotient' | cited [1] | cited excerpt "The total number of seats in the Parliament are allocated to parties proportionally to the number of votes received in the second vote of the ballot using the d'Hondt method. For example, to determine who is awarded the first list seat, the"
+- `0c2b46c5` wrong_citation: What is a derogatory term for the Christian academies that arose in the wake of school desegregation? | gold ['segregation academies'] | model 'segregation academies' | cited [1] | cited excerpt 'According to The Good Schools Guide approximately 9 per cent of children being educated in the UK are doing so at fee-paying schools at GSCE level and 13 per cent at A-level.[citation needed] Many independent schools are single-sex (though '
+- `d2b8c0a4` wrong_citation: The French and Indian War was the New World aspect of what European conflict? | gold ["Seven Years' War"] | model "the Seven Years' War" | cited [1, 2, 4, 5] | cited excerpt "The French and Indian War (1754–1763) was the North American theater of the worldwide Seven Years' War. The war was fought between the colonies of British America and New France, with both sides supported by military units from their parent"
+- `b971f019` retrieval_failure: What famous civil rights leader called Harvard home? | gold ['W. E. B. Du Bois'] | model None | cited [] | cited excerpt ''
+- `51833e4a` retrieval_failure: What is the name of world renowned cellist is a former Harvard student? | gold ['Yo Yo Ma'] | model None | cited [] | cited excerpt ''
+- `6451601c` wrong_answer: What is another term for rotors? | gold ['rotating discs'] | model 'rotors' | cited [2] | cited excerpt "Savery's steam pump used condensing steam to create a vacuum and draw water into a chamber, and then applied pressurized steam to further pump the water. Thomas Newcomen's atmospheric engine was the first commercial true steam engine using "
+- `53aba711` wrong_answer: Who governed the Central Region in the Yuan? | gold ['Central Secretariat', 'the Central Secretariat'] | model 'The Central Secretariat (or Zhongshu Sheng) at Khanbaliq (modern Beijing) governed the Central Region in the Yuan.' | cited [1] | cited excerpt 'The Central Region, consisting of present-day Hebei, Shandong, Shanxi, the south-eastern part of present-day Inner Mongolia and the Henan areas to the north of the Yellow River, was considered the most important region of the dynasty and di'
+- `2aae5ef4` correct_abstention:  When did Tugh Temur destroy his academy? | gold [] | model None | cited [] | cited excerpt ''
+- `168869b6` correct_abstention: When was Zhu Shijie ruler? | gold [] | model None | cited [] | cited excerpt ''
+- `c2397090` missed_abstention:  What law did not justify British imperialism? | gold [] | model 'Roman law' | cited [2] | cited excerpt 'For instance, American geographer Ellen Churchill Semple argued that even though human beings originated in the tropics they were only able to become fully human in the temperate zone. Tropicality can be paralleled with Edward Said’s Orient'
+- `4e3e6c42` missed_abstention: Who constructed an experiment where stones and rocks were rolled down an incline? | gold [] | model 'Galileo Galilei' | cited [1] | cited excerpt "Aristotle was aware of this problem and proposed that the air displaced through the projectile's path carries the projectile to its target. This explanation demands a continuum like air for change of place in general. The shortcomings of Ar"
+

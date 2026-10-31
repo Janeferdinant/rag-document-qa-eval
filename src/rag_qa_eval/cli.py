@@ -107,7 +107,7 @@ def _llm_stage(
         from evalharness.llm.base import UsageLimitError, get_client
         from evalharness.llm.cache import CachingClient
 
-        from .eval_llm import ArmSpec, arm_client, llm_markdown, parse_arms, run_llm
+        from .eval_llm import ArmSpec, arm_client, llm_markdown, ollama_processor, parse_arms, run_llm
         from .tracing import setup_tracing
     except ImportError:
         _log('the llm stage needs the optional dependency: pip install ".[llm]"')
@@ -130,6 +130,7 @@ def _llm_stage(
         result = run_llm(
             prep, settings, comps, cache_dir, retrieval, reader_result, parse_arms(args.arms), factory,
             judge=judge, sample_n=args.sample_n, tracer=setup_tracing(), log=_log,
+            processor_probe=ollama_processor,
         )  # fmt: skip
     except UsageLimitError as e:
         _log(

@@ -118,7 +118,14 @@ def llm_tables(result: dict[str, Any]) -> str:
         + f"Passages: the top {meta['k']} from {r['method']} over {r['strategy']} chunks of {r['size']} words "
         f"({r['embedder'].split('/')[-1]}). Prompt hash `{meta['prompt_sha256'][:12]}`. The sample is "
         f"{meta['sample']['n']} questions, stratified by answerable or unanswerable, seed {meta['sample']['seed']}. "
-        f"The extractive baseline reads the top {meta.get('baseline_k', 1)} passage (the committed reader run), "
+        + (
+            "Local arms ran in Ollama on: "
+            + ", ".join(f"{a['name']} {a['processor']}" for a in meta["arms"] if a.get("processor"))
+            + ". "
+            if any(a.get("processor") for a in meta["arms"])
+            else ""
+        )
+        + f"The extractive baseline reads the top {meta.get('baseline_k', 1)} passage (the committed reader run), "
         "not five. Citation precision and recall are over answerable questions only (an unanswerable question has "
         "no gold span to cite); for the baseline, precision is whether its one passage contains a gold span. "
         "Latency is the time recorded for the call that produced each answer, so cached answers keep it. "
