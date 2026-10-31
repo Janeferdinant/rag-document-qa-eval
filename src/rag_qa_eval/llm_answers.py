@@ -13,11 +13,9 @@ from evalharness.llm.base import Completion, LLMClient, Message, extract_json
 from pydantic import BaseModel, ValidationError
 
 SYSTEM_PROMPT = (
-    "You answer questions using only the numbered passages you are given. "
-    "Reply with the shortest span that fully answers the question, copied from a passage, "
-    "and cite the number of every passage the answer relies on (the numbers are 1-based, as shown). "
-    "If the passages do not contain the answer, abstain: set `abstain` to true, `answer` to an empty "
-    "string and `citations` to an empty list. Never answer from memory."
+    "Answer the question using the numbered passages. Copy the shortest span from a passage that fully "
+    "answers it and cite the number of every passage you used (1-based, as shown). Set `abstain` to true, "
+    "with an empty `answer` and no citations, only when none of the passages contains the answer."
 )
 
 

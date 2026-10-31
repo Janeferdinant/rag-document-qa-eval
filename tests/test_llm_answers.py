@@ -111,3 +111,12 @@ def test_abstain_is_valid_and_clears_citations() -> None:
 def test_malformed_replies_raise_answer_format_error(reply: Completion) -> None:
     with pytest.raises(AnswerFormatError):
         parse_answer(reply, 5)
+
+
+def test_system_prompt_limits_abstention_to_passages_without_the_answer() -> None:
+    """Chosen on the calibration split (docs/llm-answers.md): a prompt that stresses abstention made a small
+    model abstain on every question, so the rule must be 'only when no passage contains the answer'."""
+    from rag_qa_eval.llm_answers import SYSTEM_PROMPT
+
+    assert "only when none of the passages contains the answer" in SYSTEM_PROMPT
+    assert "Never answer from memory" not in SYSTEM_PROMPT
