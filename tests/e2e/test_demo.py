@@ -261,3 +261,41 @@ def test_api_errors_are_explained_without_leaking_the_key(make_session, corpus, 
     # the browser logs a failed request itself; that is the only console noise allowed here
     assert s.errors == [] and s.blocked == []
     assert all(FAKE_KEY not in m for m in s.console)
+
+
+@pytest.mark.parametrize("width", WIDTHS)
+def test_example_with_a_precomputed_llm_answer_shows_it_with_citations_and_passages(
+    browser, base_url, examples, width: int
+):
+    llm = {
+        "model": "fake-model",
+        "answer": "Zed",
+        "citations": [2],
+        "abstained": False,
+        "valid": True,
+        "passages": [{"rank": i, "title": f"Title_{i}", "text": f"passage text {i}"} for i in range(1, 6)],
+    }
+    patched = json.loads(json.dumps(examples))
+    patched["examples"][0]["llm"] = llm
+    patched["meta"]["llm"] = {"arm": "fake", "model": "fake-model", "passages": 5, "run_date": "2026-10-31"}
+    s = Session(browser, width, base_url)
+    s.page.route(
+        "**/data/examples.json",
+        lambda r: r.fulfill(status=200, content_type="application/json", body=json.dumps(patched)),
+    )
+    s.open()
+    try:
+        s.page.locator(".chip").nth(0).click()
+        block = s.page.locator("#llm-answer")
+        assert "fake-model" in block.inner_text() and "Precomputed" in block.inner_text()
+        assert "Zed" in block.locator(".answer").inner_text()
+        assert block.locator(".cite").inner_text() == "[2]"
+        assert block.locator(".llm-passage").count() == 5 and block.locator(".llm-passage.cited").count() == 1
+        assert s.page.locator(".passage").count() == len(examples["examples"][0]["retrieved"])  # unchanged
+        assert no_horizontal_scroll(s)
+        s.page.locator(".chip").nth(1).click()
+        assert s.page.locator("#llm-answer").count() == 0  # examples without a block show none
+        assert s.gemini_requests == []
+        assert_clean(s)
+    finally:
+        s.close()

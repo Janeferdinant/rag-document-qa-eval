@@ -130,6 +130,13 @@ button:disabled { opacity: 0.55; cursor: progress; }
 .passages { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 10px; }
 .passage { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--bg); }
 .passage.cited { border-color: var(--accent); background: var(--accent-soft); }
+.llm-passage { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--bg); }
+.llm-passage.cited { border-color: var(--accent); background: var(--accent-soft); }
+.llm-passage .head { font-size: 0.82rem; font-weight: 700; color: var(--muted); margin-bottom: 4px; display: flex; gap: 8px; flex-wrap: wrap; }
+.llm-passage .head .n { color: var(--cite); }
+.llm-passage p { margin: 0; font-size: 0.93rem; overflow-wrap: anywhere; }
+.llm { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
+.llm summary { cursor: pointer; color: var(--muted); font-size: 0.9rem; margin-top: 8px; }
 .passage .head { font-size: 0.82rem; font-weight: 700; color: var(--muted); margin-bottom: 4px; display: flex; gap: 8px; flex-wrap: wrap; }
 .passage .head .n { color: var(--cite); }
 .passage p { margin: 0; font-size: 0.93rem; overflow-wrap: anywhere; }
