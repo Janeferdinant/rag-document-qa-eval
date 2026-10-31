@@ -39,6 +39,7 @@ from .llm_metrics import citation_precision, citation_recall
 from .metrics import bootstrap_ci, bootstrap_ratio_ci
 from .qa_metrics import answer_in_context, score_prediction, supported_by_chunk
 from .retrieval import chunk_contains_span
+from .tracing import record_answer
 
 K = 5
 BASELINE = "extractive-baseline"
@@ -257,6 +258,7 @@ def run_llm(
     *,
     judge: tuple[LLMClient, str] | None = None,
     sample_n: int = 100,
+    tracer: Any | None = None,
     log: Callable[[str], None] = print,
 ) -> dict[str, Any]:
     """Run every arm. A `UsageLimitError` from a client stops the run and is re-raised: finished answers are in the
@@ -295,6 +297,7 @@ def run_llm(
             passages, supports, golds = material[q.qid]
             res = generate_answer(q.text, passages, client=client, model=arm.model)
             rows.append(_row(q, res, passages, supports, golds))
+            record_answer(tracer, q.text, res)
             for c in res.completions:
                 digest, billing = c.model_digest or digest, c.billing
             if i % 100 == 0:

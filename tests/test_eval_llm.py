@@ -136,3 +136,17 @@ def test_parse_arms_maps_names_to_providers_and_samples() -> None:
     assert arms[2].model == "gpt-6.1-sol" and arms[1].model == "default"
     with pytest.raises(ValueError, match="gemini"):
         parse_arms(["gemini"])
+
+
+def test_stage_records_one_span_per_answer_when_a_tracer_is_given(
+    world: dict[str, Any], tmp_path: Path
+) -> None:
+    pytest.importorskip("opentelemetry.sdk.trace")
+    from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
+
+    from rag_qa_eval.tracing import setup_tracing
+
+    exporter = InMemorySpanExporter()
+    tracer = setup_tracing({"RAG_TRACING": "1"}, exporter=exporter)
+    run_fake(world, tmp_path, tracer=tracer)
+    assert len(exporter.get_finished_spans()) == n_test(world) + 20  # the local arm plus the sample-only arm
